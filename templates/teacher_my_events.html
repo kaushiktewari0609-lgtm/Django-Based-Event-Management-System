@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Nexus | Scheduled Events{% endblock %}
+
+{% block extrahead %}
+<style>
+    /* --- Layout & Structural Containers --- */
+    .dashboard-workspace-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 20px 40px 20px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    /* Header Action Layout */
+    .dashboard-header-flex {
+        display: flex; 
+        justify-content: space-between; 
+        align-items: flex-start; 
+        gap: 20px;
+        border-bottom: 1px solid var(--border-ether, #2d3748);
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+
+    .header-actions-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .event-management-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* --- Refined Event Card Layout --- */
+    .event-display-card {
+        background: var(--surface-card, #1a202c);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 14px;
+        padding: 28px;
+        display: grid;
+        grid-template-columns: 130px 1fr 240px;
+        gap: 20px;
+        align-items: start;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        position: relative;
+    }
+    .event-display-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--neon-cyan, #00f0ff);
+        box-shadow: var(--glare-effect, 0 0 20px rgba(0, 240, 255, 0.1));
+    }
+    
+    .event-display-card.state-locked-hold {
+        border-color: rgba(239, 68, 68, 0.25);
+        background: linear-gradient(145deg, var(--surface-card, #1a202c), rgba(239, 68, 68, 0.01));
+    }
+
+    /* --- Column Specific Custom Styles --- */
+    .card-date-column {
+        text-align: center;
+        border-right: 1px solid var(--border-ether, #2d3748);
+        padding-right: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        min-height: 90px;
+    }
+    .card-date-column .date-day {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        display: block;
+        line-height: 1;
+        letter-spacing: -1px;
+    }
+    .card-date-column .date-month {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--neon-cyan, #00f0ff);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-top: 4px;
+    }
+    .card-date-column .date-time {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--slate-muted, #a0aec0);
+        margin-top: 12px;
+        display: block;
+        font-family: monospace;
+    }
+
+    .card-details-column {
+        padding: 0 16px;
+        width: 100%;
+    }
+    
+    .card-details-column h3.user-primary-title {
+        color: #ffffff;
+        font-size: 1.5rem;
+        margin: 8px 0;
+        font-weight: 600;
+    }
+
+    .card-actions-column {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    /* --- Embedded Analytics & Insights Block --- */
+    .analytics-insights-panel {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        background: rgba(6, 9, 19, 0.5);
+        border: 1px solid var(--border-ether, #2d3748);
+    }
+    .analytics-grid-mesh {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .analytics-metric-tile {
+        background: rgba(255, 255, 255, 0.01);
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .analytics-metric-label {
+        font-size: 10px;
+        color: var(--slate-muted, #a0aec0);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .analytics-metric-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    /* --- Top Level Navigation Controls --- */
+    .nav-action-btn {
+        text-decoration: none; 
+        padding: 10px 20px; 
+        font-size: 13px; 
+        font-weight: 600;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-ether, #3d4a5d);
+        color: #ffffff;
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    /* --- Redesigned SOLID & BOLD Actions Stack Buttons --- */
+    .action-link-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.25px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: filter 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+        border: none;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+    .action-link-btn:hover {
+        filter: brightness(1.2);
+        transform: translateY(-1px);
+    }
+    .action-link-btn:active {
+        transform: translateY(1px);
+    }
+    
+    /* Filled Theme Variant Maps */
+    .btn-style-cyan { 
+        background: linear-gradient(135deg, #00c6ff, #0072ff); 
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(0, 114, 255, 0.3);
+    }
+    .btn-style-cyan:hover {
+        box-shadow: 0 6px 20px rgba(0, 198, 255, 0.4);
+    }
+    
+    .btn-style-emerald { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+    }
+    .btn-style-emerald:hover {
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-style-rose { 
+        background: linear-gradient(135deg, #f43f5e, #e11d48); 
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3);
+    }
+    .btn-style-rose:hover {
+        box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+    }
+    
+    .btn-style-purple { 
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9); 
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(109, 40, 217, 0.3);
+    }
+    .btn-style-purple:hover {
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .btn-style-muted { 
+        background: #2d3748; 
+        border: 1px solid #4a5568; 
+        color: #718096; 
+        text-shadow: none;
+        cursor: not-allowed; 
+        box-shadow: none;
+    }
+    .btn-style-muted:hover {
+        filter: none;
+        transform: none;
+    }
+
+    .card-actions-column form {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* --- Responsive System Breakpoints --- */
+    @media (max-width: 900px) {
+        .dashboard-header-flex { flex-direction: column; align-items: flex-start; }
+        .header-actions-group { width: 100%; }
+        .event-display-card { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
+        .card-date-column { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border-ether, #2d3748); padding-bottom: 20px; }
+        .card-details-column { padding: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-workspace-container">
+    <header class="dashboard-header-flex">
+        <div>
+            <h1 style="color: #ffffff; font-size: 2.2rem; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.02em;">My Scheduled Events</h1>
+            <p style="color: var(--slate-muted, #a0aec0); margin: 0; font-size: 15px; line-height: 1.5;">Manage distribution metrics, review venue allocation updates, and verify pass parameters for your active sessions.</p>
+        </div>
+        <div class="header-actions-group">
+            {% if user.is_authenticated %}
+                {% if user.profile.college_data.role == 'Admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+                        ← Return to Dashboard
+                    </a>
+                {% elif user.profile.college_data.role == 'Teacher' %} 
+                    {# Note: Adjust 'user.role' or 'user.is_teacher' to match your Custom User Model fields #}
+                    <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+                        ← Return to Dashboard
+                    </a>
+                {% elif user.profile.college_data.role == 'Student'%}
+                    <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+                        ← Return to Dashboard
+                    </a>
+                {% endif %}
+                <a href="/events/create/" class="nav-action-btn btn-style-cyan">
+                    + Create New Event
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="event-management-stack">
+        {% for event in events %}
+        <div class="event-display-card {% if event.is_too_early %}state-locked-hold{% endif %}">
+            
+            <div class="card-date-column">
+                <span class="date-day">{{ event.date|date:"d" }}</span>
+                <span class="date-month">{{ event.date|date:"M" }}</span>
+                <span class="date-time">{{ event.start_time|time:"h:i A" }}</span>
+            </div>
+
+            <div class="card-details-column">
+                <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    {% if event.is_published %}
+                        <span class="operational-status-tag tag-verified">● Passes Active</span>
+                    {% elif event.can_publish %}
+                        <span class="operational-status-tag rank-tier-student">● Ready to Publish</span>
+                    {% elif event.is_too_early %}
+                        <span class="operational-status-tag tag-suspended">● Locked</span>
+                    {% else %}
+                        <span class="operational-status-tag rank-tier-root" style="background: rgba(100, 116, 139, 0.1) !important; color: var(--slate-light, #e2e8f0) !important; border: 1px solid rgba(100, 116, 139, 0.2) !important;">● Concluded</span>
+                    {% endif %}
+                </div>
+                
+                <h3 class="user-primary-title">{{ event.title }}</h3>
+                
+                <p style="font-size: 14px; color: var(--slate-light, #e2e8f0); margin: 0 0 16px 0;">
+                    <strong class="glow-field-cyan" style="font-weight: 600; color: var(--neon-cyan, #00f0ff);">{{ event.total_registrations }}</strong> student{{ event.total_registrations|pluralize }} registered
+                </p>
+
+                {% if event.parsed_ai_warnings and not event.ai_venue_reason and not event.predicted_crowd %}
+                <div class="restriction-manifesto-callout" style="margin-top: 16px;">
+                    <div class="manifesto-title">⚡ System Intelligence Warnings</div>
+                    {% for warning in event.parsed_ai_warnings %}
+                    <p style="font-size: 13px; font-style: normal; margin-top: 4px; color: var(--slate-light, #e2e8f0);">• {{ warning }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if event.ai_venue_reason or event.predicted_crowd %}
+                <div class="analytics-insights-panel"> 
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;"> 
+                        <div class="segment-heading-token" style="margin-bottom: 0; color: #ffffff; font-weight: 600;">⚡ Optimization Intelligence Dashboard</div> 
+                        <div class="operational-status-tag tag-verified" style="font-size: 10px; padding: 2px 10px;">Analysis Active</div> 
+                    </div> 
+                    
+                    <div class="analytics-grid-mesh"> 
+                        <div class="analytics-metric-tile"> 
+                            <div class="analytics-metric-label">Attendance Forecast</div> 
+                            <div class="analytics-metric-value">
+                                 {{ event.predicted_crowd|default:event.expected_crowd }} 
+                            </div> 
+                        </div> 
+                        <div class="analytics-metric-tile"> 
+                            <div class="analytics-metric-label">Confidence Metric</div> 
+                            <div class="analytics-metric-value glow-field-cyan" style="color: var(--neon-cyan, #00f0ff);">
+                                {{ event.crowd_confidence|default:"MEDIUM" }}
+                            </div>
+                        </div> 
+                        <div class="analytics-metric-tile"> 
+                            <div class="analytics-metric-label">Venue Allocation</div> 
+                            <div class="analytics-metric-value glow-field-emerald" style="color: var(--neon-emerald, #39ff14);">OPTIMAL</div> 
+                        </div> 
+                        <div class="analytics-metric-tile"> 
+                            <div class="analytics-metric-label">Risk Evaluation</div> 
+                            <div class="analytics-metric-value glow-field-emerald" style="color: var(--neon-emerald, #39ff14);">LOW RISK</div> 
+                        </div> 
+                    </div>
+
+                    {% if event.parsed_ai_warnings %} 
+                    <div class="ai-warning-box" style="margin-top: 14px; padding: 14px; border-radius: 8px; background: rgba(255, 170, 0, 0.03); border: 1px solid rgba(255, 170, 0, 0.15); box-sizing: border-box;"> 
+                        <div class="warning-title" style="color: var(--neon-amber, #ffaa00); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Operational Advisories</div> 
+                        {% for warning in event.parsed_ai_warnings %} 
+                        <div style="color: var(--slate-light, #e2e8f0); font-size: 13px; margin-top: 4px;">⚠️ {{ warning }}</div> 
+                        {% endfor %} 
+                    </div> 
+                    {% endif %}
+                </div> 
+                {% endif %}
+            </div>
+
+            <div class="card-actions-column">
+                
+                {% if event.is_published %}
+                    <a href="{% url 'students_participated' event.id %}" class="action-link-btn btn-style-cyan">View Attendance</a>
+                    <span style="color: var(--neon-emerald, #39ff14); font-size: 11px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Distribution Active</span>
+                
+                {% elif event.can_publish %}
+                    <form action="{% url 'publish_passes' event.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="action-link-btn btn-style-emerald">🚀 Publish Passes</button>
+                    </form>
+                
+                {% elif event.is_too_early %}
+                    <button class="btn-style-muted action-link-btn" disabled>Publish Locked</button>
+                    <span style="font-size: 11px; color: var(--neon-amber, #ffaa00); font-weight: 600; text-align: center; margin-top: -2px;">Opens at {{ event.unlock_at|time:"h:i A" }}</span>
+                
+                {% else %}
+                    <button class="btn-style-muted action-link-btn" disabled>Event Concluded</button>
+                {% endif %}
+
+                <a href="{% url 'reassign_venue' event.id %}" class="action-link-btn btn-style-cyan">
+                    🏢 Reassign Venue
+                </a>
+
+                {% if event.organizer == request.user %}
+                    <a href="{% url 'broadcast_event_message' event.id %}" class="action-link-btn btn-style-rose">
+                        📢 Message Students
+                    </a>
+                {% endif %}
+
+                {% if is_admin or event.organizer == request.user or event.date < today %}
+                    <a href="{% url 'event_feedback_summary' event.id %}" class="action-link-btn btn-style-emerald">
+                        ★ View Evaluation Summary
+                    </a>
+                {% endif %}
+
+                {% if event.status|upper == 'APPROVED' %}
+                    <a href="{% url 'event_feedback_summary' event.id %}" class="action-link-btn btn-style-purple">
+                        ★ View Student Ratings
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="null-records-canvas" style="text-align: center; padding: 40px; border: 1px dashed var(--border-ether, #2d3748); border-radius: 14px;">
+            <h2 style="color: #ffffff; margin-bottom: 12px;">No Scheduled Events Found</h2>
+            <p style="margin-bottom: 24px; color: var(--slate-muted, #a0aec0);">There are currently no active sessions registered in your itinerary.</p>
+            <a href="/events/create/" style="color: var(--neon-cyan, #00f0ff); text-decoration: none; font-size: 14px; font-weight: 600;">
+                Click here to create your first event entry &rarr;
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

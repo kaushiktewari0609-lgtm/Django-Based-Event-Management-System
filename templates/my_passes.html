@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Entry Passes | Nexus{% endblock %}
+
+{% block extrahead %}
+<style>
+    :root { 
+        --primary: #38bdf8; 
+        --accent: #818cf8; 
+        --bg-hub: #020617; 
+        --ticket-dark: #0f172a;
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --text-muted: #94a3b8;
+    }
+
+    /* Core Page Layout Layer */
+    .passes-workspace-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    /* Interactive Top Back Navigation Button */
+    .top-navigation-row {
+        width: 100%;
+        max-width: 1100px;
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 20px;
+    }
+    .btn-back-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        padding: 10px 20px;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+    .btn-back-nav:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary);
+        transform: translateX(-4px);
+    }
+
+    /* Typography Header blocks */
+    .passes-header { 
+        text-align: center; 
+        margin-bottom: 40px; 
+    }
+    .passes-header h1 { 
+        font-size: 2.5rem; 
+        font-weight: 800; 
+        letter-spacing: -1.5px; 
+        color: #ffffff;
+        margin-bottom: 6px;
+    }
+    .passes-header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+        font-weight: 300;
+    }
+
+    /* Responsive Pass Deck Grid */
+    .passes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 32px;
+        width: 100%;
+        max-width: 1100px;
+        justify-items: center;
+        margin-bottom: 40px;
+    }
+
+    /* Premium Ticket Component Frame */
+    .ticket-card {
+        width: 100%;
+        max-width: 350px;
+        background: var(--ticket-dark);
+        border-radius: 28px;
+        overflow: hidden;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+    }
+    .ticket-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(56, 189, 248, 0.3);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.05);
+    }
+
+    /* Top Section Styling */
+    .ticket-top-panel {
+        padding: 32px 28px;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(30, 41, 59, 0.3) 0%, rgba(15, 23, 42, 0.3) 100%);
+        position: relative;
+    }
+    .event-pass-title {
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        line-height: 1.25;
+        color: #ffffff;
+    }
+    .event-pass-date {
+        font-size: 0.9rem;
+        color: var(--primary);
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    .badge-pass-authenticator {
+        margin-top: 16px; 
+        font-size: 0.7rem; 
+        color: var(--accent); 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        letter-spacing: 1.5px;
+        background: rgba(129, 140, 248, 0.08);
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-block;
+        border: 1px solid rgba(129, 140, 248, 0.15);
+    }
+
+    /* CSS Perforation Effect Segments */
+    .ticket-perforation-divider {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 32px;
+        position: relative;
+        background: transparent;
+    }
+    .perforation-hole {
+        width: 32px;
+        height: 32px;
+        background: var(--bg-hub, #020617);
+        border-radius: 50%;
+        position: absolute;
+        border: 1px solid var(--glass-border);
+    }
+    .perforation-hole-left { left: -17px; box-shadow: inset -6px 0 8px rgba(0,0,0,0.3); }
+    .perforation-hole-right { right: -17px; box-shadow: inset 6px 0 8px rgba(0,0,0,0.3); }
+    
+    .perforation-dashed-line {
+        flex-grow: 1;
+        border-top: 2px dashed rgba(255, 255, 255, 0.12);
+        margin: 0 28px;
+    }
+
+    /* Bottom Scanning Core Area */
+    .ticket-scanning-bay {
+        background: #ffffff;
+        padding: 32px 32px 24px 32px;
+        text-align: center;
+        color: #0f172a;
+    }
+    .qr-container-plate {
+        background: #ffffff;
+        display: inline-block;
+        padding: 8px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        margin-bottom: 16px;
+        border: 1px solid #f1f5f9;
+    }
+    .qr-code-img {
+        width: 160px;
+        height: 160px;
+        display: block;
+    }
+    .pass-secure-code {
+        font-family: 'Courier New', monospace;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 4px;
+        background: #f8fafc;
+        color: #0f172a;
+        padding: 8px 16px;
+        border-radius: 12px;
+        display: inline-block;
+        border: 1px solid #e2e8f0;
+    }
+
+    .scanning-instructions {
+        font-size: 0.7rem; 
+        margin-top: 14px; 
+        font-weight: 700; 
+        color: #64748b; 
+        text-transform: uppercase;
+    }
+    .holder-identity-tag {
+        font-size: 0.85rem; 
+        font-weight: 700; 
+        margin-top: 4px; 
+        color: #0f172a;
+        margin-bottom: 20px;
+    }
+
+    /* Interactive Contextual Print Utility Action Trigger */
+    .btn-print-ticket {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 10px 0;
+        width: 100%;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+    .btn-print-ticket:hover {
+        background: var(--ticket-dark);
+        color: #ffffff;
+        border-color: var(--ticket-dark);
+    }
+
+    .btn-return-hub {
+        margin-top: 12px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+    .btn-return-hub:hover { color: #ffffff; }
+
+    /* ==========================================================================
+       DYNAMIC HIGH-CONTRAST INK-SAVING PRINT STYLES ENGINE
+       ========================================================================== */
+    @media print {
+        /* Hide layout structural noise cleanly without breaking parent trees */
+        header, 
+        nav,
+        footer,
+        .top-navigation-row, 
+        .passes-header, 
+        .btn-return-hub, 
+        .btn-print-ticket,
+        .badge-pass-authenticator { 
+            display: none !important; 
+        }
+
+        /* Hide all unselected ticket listings */
+        .ticket-card:not(.target-print-pane) {
+            display: none !important;
+        }
+
+        /* Re-purpose layout frames back to base white for optimal print outputs */
+        body, html, .passes-workspace-container, .passes-grid {
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+
+        /* Format Isolated Target Card Content Plates */
+        .ticket-card.target-print-pane {
+            display: flex !important;
+            visibility: visible !important;
+            margin: 40px auto !important;
+            width: 350px !important;
+            border: 2px solid #000000 !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+        }
+
+        .ticket-card.target-print-pane * {
+            color: #000000 !important;
+            background: transparent !important;
+        }
+
+        .ticket-card.target-print-pane .ticket-top-panel {
+            background: #ffffff !important;
+            border-bottom: 2px dashed #000000 !important;
+            padding: 24px 20px;
+        }
+
+        .ticket-card.target-print-pane .ticket-perforation-divider {
+            display: none !important; /* Drops visual hole indicators on sheets */
+        }
+
+        .ticket-card.target-print-pane .ticket-scanning-bay {
+            background: #ffffff !important;
+            padding: 24px 20px;
+        }
+
+        .ticket-card.target-print-pane .qr-container-plate {
+            border: 1px solid #000000 !important;
+            padding: 6px;
+            margin-bottom: 16px;
+            display: inline-block !important;
+        }
+
+        .ticket-card.target-print-pane .qr-code-img {
+            display: block !important;
+            width: 160px !important;
+            height: 160px !important;
+        }
+
+        .ticket-card.target-print-pane .pass-secure-code {
+            border: 2px solid #000000 !important;
+            font-size: 1.4rem !important;
+            font-weight: 800 !important;
+            padding: 8px 16px !important;
+            letter-spacing: 4px !important;
+            display: inline-block !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="passes-workspace-container">
+
+    <!-- Top Action Navigation Block Row -->
+    <div class="top-navigation-row">
+        <a href="javascript:history.back()" class="btn-back-nav">
+            &larr; Return to Dashboard
+        </a>
+    </div>
+
+    <header class="passes-header">
+        <h1>My Entry Passes</h1>
+        <p>Access and manage your digital verified access credentials across Nexus</p>
+    </header>
+
+    <div class="passes-grid">
+        {% for reg in registrations %}
+        <div class="ticket-card">
+            
+            <!-- Top Ledger Panel Block -->
+            <div class="ticket-top-panel">
+                <h2 class="event-pass-title">{{ reg.event.name }}</h2>
+                <div class="event-pass-date">📅 {{ reg.event.date|date:"D, d M Y" }}</div>
+                <span class="badge-pass-authenticator">Official Entry Pass</span>
+            </div>
+
+            <!-- Structural Perforation Cut -->
+            <div class="ticket-perforation-divider">
+                <div class="perforation-hole perforation-hole-left"></div>
+                <div class="perforation-dashed-line"></div>
+                <div class="perforation-hole perforation-hole-right"></div>
+            </div>
+
+            <!-- Bottom Scanning Infrastructure Plate -->
+            <div class="ticket-scanning-bay">
+                <div class="qr-container-plate">
+                    {% if reg.qr_code_image %}
+                        <img src="{{ reg.qr_code_image.url }}" alt="Secure Entrance Token QR" class="qr-code-img">
+                    {% else %}
+                        <div style="font-size: 60px; line-height: 160px; width: 160px; height: 160px; margin: 0 auto; background: #f8fafc; border-radius: 12px;">🎫</div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <div class="pass-secure-code">{{ reg.unique_pass }}</div>
+                </div>
+                
+                <p class="scanning-instructions">Present confirmation token at entrance</p>
+                <div class="holder-identity-tag">{{ reg.student.get_full_name|upper }}</div>
+
+                <!-- Print System Dynamic Trigger Action Node -->
+                <button class="btn-print-ticket" onclick="executeTargetedTicketPrint(this.closest('.ticket-card'))">
+                    🖨️ Print Pass
+                </button>
+            </div>
+
+        </div>
+        {% empty %}
+        <!-- Null Record Fallback Visual Block -->
+        <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: #64748b;">
+            <div style="font-size: 60px; margin-bottom: 16px; opacity: 0.4;">📭</div>
+            <h3 style="color: white; margin-bottom: 6px;">No Active Credentials Allocated</h3>
+            <p style="font-weight: 300;">You haven't requested admission items for any upcoming campus fixtures yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    /**
+     * Isolates a selected event ticket pass card from the listing layout context
+     * and forwards it cleanly directly into the client print execution subsystem.
+     */
+    function executeTargetedTicketPrint(ticketElement) {
+        if (!ticketElement) return;
+        
+        // Inject structural print targeting identifier class
+        ticketElement.classList.add('target-print-pane');
+        
+        // Trigger print window process pipeline
+        window.print();
+        
+        // Cleanup document layout node post handoff execution
+        ticketElement.classList.remove('target-print-pane');
+    }
+</script>
+{% endblock %}

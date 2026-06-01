@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event | {{ events.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #38bdf8; --accent: #ff007a; --bg: #05071a; 
+            --card-bg: rgba(15, 18, 53, 0.85); --input-bg: rgba(5, 7, 26, 0.7);
+            --success: #10b981; --warning: #fbbf24; --admin-purple: #a855f7;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { 
+            background: radial-gradient(circle at top right, #0f172a, #05071a); 
+            color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* Notifications */
+        .messages-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast {
+            background: var(--card-bg); border-left: 4px solid var(--primary); padding: 15px 25px;
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.4s ease;
+            font-size: 14px; font-weight: 600;
+        }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--accent); color: var(--accent); }
+        .toast.info { border-color: var(--primary); color: var(--primary); }
+
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Form Container */
+        .form-container {
+            max-width: 850px; width: 100%; background: var(--card-bg); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header { margin-bottom: 30px; border-left: 5px solid var(--accent); padding-left: 20px; }
+        .header h1 { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .header.admin-header { border-left-color: var(--admin-purple); }
+        
+        /* Status Warning Box */
+        .status-notice {
+            padding: 15px; border-radius: 12px; margin-bottom: 25px; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 12px; font-weight: 600;
+        }
+        .notice-teacher { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--warning); color: var(--warning); }
+        .notice-admin { background: rgba(168, 85, 247, 0.1); border: 1px solid var(--admin-purple); color: #d8b4fe; }
+
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input, textarea {
+            background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px; border-radius: 12px; color: white; outline: none; transition: 0.3s;
+            font-size: 14px;
+        }
+        input:focus, textarea:focus { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); }
+
+        /* Drag & Drop */
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 15px;
+            text-align: center; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.2);
+        }
+        .drop-zone:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.05); }
+        .drop-zone.drag-over { border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+        #preview-img { width: 100%; max-height: 250px; object-fit: contain; margin-top: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* Actions */
+        .btn-row { grid-column: span 2; display: flex; gap: 15px; margin-top: 20px; }
+        .btn { flex: 1; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; text-align: center; border: none; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
+        .btn-save { background: linear-gradient(90deg, #ff007a, #ff4d97); color: white; box-shadow: 0 4px 15px rgba(255, 0, 122, 0.2); }
+        .btn-save:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(255, 0, 122, 0.4); }
+        .btn-cancel { background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-decoration: none; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+        .btn-cancel:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+
+        @media (max-width: 600px) { form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="toast {{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="form-container">
+    <div class="header {% if request.user.groups.all.0.name == 'Admin' %}admin-header{% endif %}">
+        <h1>Update Details</h1>
+        <p style="color: #94a3b8; font-size: 0.9rem;">
+            Currently Editing: <strong style="color: white;">{{ events.name }}</strong>
+        </p>
+    </div>
+
+    {% if request.user.groups.all.0.name == "Admin" %}
+    <div class="status-notice notice-admin">
+        <span>🛡️</span>
+        <span>Administrator Mode: Changes will automatically set status to <strong>APPROVED</strong>.</span>
+    </div>
+    {% else %}
+    <div class="status-notice notice-teacher">
+        <span>⚠️</span>
+        <span>Teacher Mode: Text changes will revert status to <strong>PENDING</strong> for re-approval. Poster-only updates will not affect status.</span>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" id="update-form">
+        {% csrf_token %}
+        
+        <div class="input-group full-width">
+            <label>Event Name</label>
+            <input type="text" name="name" value="{{ events.name }}" required>
+        </div>
+
+        <div class="input-group full-width">
+            <label>Description</label>
+            <textarea name="description" rows="3" required>{{ events.description }}</textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ events.date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="input-group">
+            <label>Crowd Size</label>
+            <input type="number" name="expected_crowd" value="{{ events.expected_crowd }}" required>
+        </div>
+
+        <div class="input-group">
+            <label>Start Time</label>
+            <input type="time" name="start_time" value="{{ events.start_time|time:'H:i' }}" required>
+        </div>
+
+        <div class="input-group">
+            <label>End Time</label>
+            <input type="time" name="end_time" value="{{ events.end_time|time:'H:i' }}" required>
+        </div>
+        <div class="input-group">
+            <label>Registration Opens</label>
+            <input type="datetime-local" name="registration_start" value = '{{ events.registration_start|date:'Y-m-d\TH:i' }}' required>
+        </div>
+
+        <div class="input-group">
+            <label>Registration Closes</label>
+            <input type="datetime-local" name="registration_end"value = '{{ events.registration_end|date:'Y-m-d\TH:i' }}' required>
+        </div>
+        <div class="input-group full-width">
+            <label>Poster Gallery</label>
+            <div class="drop-zone" id="drop-zone">
+                <div id="drop-text" {% if events.poster %}style="display:none;"{% endif %}>
+                    <p style="font-size: 0.8rem; opacity: 0.6;">Drag & Drop new poster or <strong>Click to Browse</strong></p>
+                </div>
+                <input type="file" name="poster" id="poster-input" style="display: none;" accept="image/*">
+                <img id="preview-img" src="{% if events.poster %}{{ events.poster.url }}{% endif %}" style="{% if events.poster %}display: block;{% else %}display: none;{% endif %}">
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <a href="{% url 'teachers_event_list' %}" class="btn btn-cancel">Discard Changes</a>
+            <button type="submit" class="btn btn-save">Update Event</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Message Auto-dismiss
+    setTimeout(() => {
+        const toasts = document.querySelectorAll('.toast');
+        toasts.forEach(t => {
+            t.style.transition = '0.5s';
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(20px)';
+            setTimeout(() => t.remove(), 500);
+        });
+    }, 4000);
+
+    // Drag & Drop Handling
+    const dropZone = document.getElementById('drop-zone');
+    const posterInput = document.getElementById('poster-input');
+    const previewImg = document.getElementById('preview-img');
+    const dropText = document.getElementById('drop-text');
+
+    dropZone.addEventListener('click', () => posterInput.click());
+
+    posterInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) handlePreview(this.files[0]);
+    });
+
+    ['dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+    dropZone.addEventListener('drop', (e) => {
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            posterInput.files = dataTransfer.files;
+            handlePreview(file);
+        }
+    });
+
+    function handlePreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+            dropText.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendees | {{ event.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #38bdf8; --accent: #10b981; --bg: #05071a; --card-bg: rgba(15, 18, 53, 0.9); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #05071a; color: white; padding: 40px 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .title-area h1 { font-size: 1.8rem; color: var(--primary); }
+
+        .btn-export { background: #10b981; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-export:hover { background: #059669; transform: translateY(-2px); }
+
+        .attendee-card { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 15px 25px; border-radius: 15px; margin-bottom: 12px;
+            display: grid; grid-template-columns: 50px 1fr 1fr 1fr; align-items: center;
+        }
+        .label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+        .val { font-size: 0.95rem; font-weight: 600; }
+        
+        .back-link { margin-bottom: 20px; display: block; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'students_registered' %}" class="back-link">← Back to Tracker</a>
+        
+        <div class="header">
+            <div class="title-area">
+                <h1>{{ event.name }}</h1>
+                <p style="color: #94a3b8;">Attendee list and contact information.</p>
+            </div>
+            <a href="{% url 'export_event_students' event.id %}" class="btn-export">
+                📊 Export to Excel
+            </a>
+        </div>
+
+        <div class="list-container">
+            <div class="attendee-card" style="background: transparent; border: none; opacity: 0.6;">
+                <div class="label">#</div>
+                <div class="label">Full Name</div>
+                <div class="label">Email Address</div>
+                <div class="label">Joined Date</div>
+            </div>
+
+            {% for reg in students %}
+            <div class="attendee-card">
+                <div class="val" style="color: var(--primary);">{{ forloop.counter }}</div>
+                <div class="val">{{ reg.student.get_full_name}}</div>
+                <div class="val" style="font-weight: 400; font-size: 0.85rem;">{{ reg.student.email }}</div>
+                <div class="val" style="font-size: 0.8rem; color: #94a3b8;">{{ reg.registered_at|date:"Y-m-d H:i" }}</div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 100px; color: #475569;">
+                <p>No students have registered for this event yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

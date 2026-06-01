@@ -1,0 +1,658 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | EventPro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.15);
+            --accent: #ff007a;
+            --accent-glow: rgba(255, 0, 122, 0.15);
+            --bg-dark: #030712;
+            --sidebar-bg: #090d16;
+            --card-bg: rgba(17, 24, 39, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --text-main: #f3f4f6;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 122, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* --- Premium Sidebar Layer --- */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px 20px 20px;
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #04060b 100%);
+            border-right: 1px solid var(--glass-border);
+            z-index: 100;
+        }
+
+        /* Custom SVG Background Overlay Support safely attached behind links */
+        .sidebar-bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("{% static 'STU1.svg' %}");
+            background-size: cover;
+            background-position: center;
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .logo-section {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #ffffff;
+            padding-left: 12px;
+            margin-bottom: 36px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-section span { color: var(--primary); }
+
+        .nav-links {
+            flex-grow: 1;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 2px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        /* Enforce structured design parameters for raw asset icons */
+        .nav-links li a #icon {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+            filter: grayscale(30%) opacity(0.8);
+            transition: all 0.25s ease;
+        }
+
+        .nav-links li a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--glass-border);
+            transform: translateX(4px);
+        }
+
+        .nav-links li a:hover #icon {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        /* Isolated Special Secondary Navigation Nodes */
+        .btn-secondary-node {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px !important;
+            margin-top: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--glass-border) !important;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary-node:hover {
+            color: var(--primary) !important;
+            background: var(--primary-glow) !important;
+            border-style: solid !important;
+            border-color: rgba(56, 189, 248, 0.3) !important;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s ease;
+        }
+        .profile-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .profile-btn #icon {
+            height: 38px;
+            width: 38px;
+            border-radius: 10px;
+            background: var(--primary-glow);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.05);
+            border: 1px solid rgba(248, 113, 113, 0.1);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(248, 113, 113, 0.15);
+            border-color: rgba(248, 113, 113, 0.25);
+            box-shadow: 0 4px 12px rgba(248, 113, 113, 0.1);
+        }
+        .logout-btn #ico {
+            height: 14px;
+            filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.4));
+        }
+
+        /* --- Core Main Window Viewport Layer --- */
+        .main-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 40px 48px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* Premium Floating Message Engine */
+        .message-container {
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .msg-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #34d399;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.05);
+        }
+
+        .msg-error, .msg-warning, .msg-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.05);
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-16px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        /* --- UPPER HALF: Premium Horizontal Scroll Architecture --- */
+        .week-strip {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .week-strip::-webkit-scrollbar { height: 6px; }
+        .week-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .week-card {
+            min-width: 320px;
+            max-width: 320px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .week-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.3);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(56, 189, 248, 0.03);
+        }
+
+        .week-card .date-tag {
+            background: var(--primary-glow);
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            align-self: flex-start;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .week-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .week-card h4 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .week-card .venue-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .week-card .time-stamp {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 12px;
+            border-radius: 8px;
+            width: fit-content;
+            border: 1px solid var(--glass-border);
+        }
+
+        .empty-strip-msg {
+            color: var(--text-muted);
+            padding: 32px;
+            background: rgba(255,255,255,0.01);
+            border-radius: 20px;
+            border: 1px dashed var(--glass-border);
+            width: 100%;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        /* --- LOWER HALF Grid Framework Layer --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.4fr;
+            gap: 36px;
+            margin-top: 40px;
+            align-items: start;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 135px;
+        }
+
+        .stat-box .count {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .stat-box .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        /* Neon Accent Highlight Feature Frame Box */
+        .stat-box.highlight {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.03) 100%);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.05);
+        }
+        .stat-box.highlight .count {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+        }
+        .stat-box.highlight .label {
+            color: #bae6fd;
+        }
+
+        /* --- Recent Notifications Panel Engine --- */
+        .notif-panel {
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            padding: 10px;
+            max-height: 330px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            margin-bottom: 6px;
+        }
+        .notif-item:last-child { margin-bottom: 0; }
+        
+        .notif-unread {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--primary);
+        }
+
+        .notif-bell-wrapper {
+            width: 42px; 
+            height: 42px; 
+            background: var(--primary-glow); 
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .notif-text { display: flex; flex-direction: column; gap: 3px; }
+        .notif-text b {
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .notif-text p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .empty-notif-msg {
+            color: var(--text-muted);
+            padding: 40px;
+            text-align: center;
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+        
+        .mark-read-btn {
+            font-size: 0.78rem;
+            padding: 8px 16px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        
+        .mark-read-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-bg-overlay"></div>
+        <div class="logo-section">Event<span>Pro</span></div>
+        
+        <ul class="nav-links">
+            <li><a href="{% url 'profile' %}"><img src="{% static 'PROFILE2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'student_events' %}"><img src="{% static 'LIVE EVENTS2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'my_registrations' %}"><img src="{% static 'MYREG2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'upcoming_events' %}"><img src="{% static 'UPCOMEVENT2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'my_passes' %}"><img src="{% static 'mypass2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'display_bus_routes' %}"><img src="{% static 'BUS2.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'my_certificates' %}"><img src="{% static 'CER2.svg' %}" id="icon"></a></li>
+            
+            <!-- Standardized clean block link node integration -->
+            <li><a href="{% url 'prev_events' %}" class="btn-secondary-node">Previous Events</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'profile' %}" class="profile-btn">
+                <img src="{% static 'IMGG.svg' %}" id="icon">
+                <div class="profile-info">
+                    <span style="color: #ffffff; font-size: 13px; font-weight: 700;">{{ name }}</span>
+                    <span style="font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">STUDENT</span>
+                </div>
+            </a>
+            <a href="{% url 'logout_view' %}" class="logout-btn">
+                <img src="{% static 'LOGOUTTEXT.svg' %}" id="ico">
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <!-- Runtime System Messaging Layout Stack Container -->
+        {% if messages %}
+        <div id="message-wrapper">
+            {% for message in messages %}
+            <div class="message-container msg-{{ message.tags }}">
+                <span class="icon">
+                    {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}
+                </span>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Horizontal Timeline Strip Header Row -->
+        <div class="section-header">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Live Operations</span>
+                <h2>Happening This Week In {{ user.profile.college_name }}</h2>
+            </div>
+            <a href="{% url 'upcoming_events' %}" style="color: var(--primary); font-size: 13px; font-weight: 700; text-decoration: none; background: var(--primary-glow); padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.15);">View All Calendar &rarr;</a>
+        </div>
+
+        <!-- Scrollable Horizontal Deck Strip Loop Grid -->
+        <div class="week-strip">
+            {% for event in events_this_week %}
+            <div class="week-card">
+                <span class="date-tag">🗓️ {{ event.date|date:"l, d M" }}</span>
+                <h3>{{ event.title }}</h3>
+                <h4>{{ event.name }}</h4>
+                
+                <div class="venue-text">
+                    <span>📍</span> {{ event.venue.name }}
+                </div>
+                <div class="time-stamp">⏱️ {{ event.start_time|time:"H:i" }} HRS</div>
+            </div>
+            {% empty %}
+            <div class="empty-strip-msg">No active track operations scheduled for the next 7 days.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Lower Analytics Data Metrics Grid Framework Container Block -->
+        <div class="dashboard-grid">
+            
+            <!-- Statistics Cluster Column -->
+            <div class="stats-section">
+                <div class="section-header">
+                    <h2>My Activity Status</h2>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-box highlight">
+                        <span class="count">{{ registration_count|default:"0" }}</span>
+                        <span class="label">Total Registered</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="count">{{ approved_events_count|default:"0" }}</span>
+                        <span class="label">Events Stream Live</span>
+                    </div>
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <span class="count" style="color: #ffffff;">{{ venue_count|default:"0" }}</span>
+                        <span class="label">Available College Venues Matrix</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asynchronous Messaging Panel Component Box Layer -->
+            <div class="notif-section">
+                <div class="section-header">
+                    <h2>Recent Updates</h2>
+                    {% if recent_notifications %}
+                    <button id="mark-all-btn" class="mark-read-btn" onclick="markAllRead()">
+                        Mark all read
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="notif-panel">
+                    {% for notification in recent_notifications %}
+                    <div class="notif-item notif-unread">
+                        <div class="notif-bell-wrapper">🔔</div>
+                        <div class="notif-text">
+                            <b>{{ notification.title }}</b>
+                            <p>{{ notification.message }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-notif-msg">System updates fully synchronized. No pending alerts.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- System Interface Support Runtime Engine Script Blocks -->
+    <script>
+        // Automatic runtime banner clearance process engine
+        setTimeout(function () {
+            const wrapper = document.getElementById('message-wrapper');
+            if (wrapper) {
+                wrapper.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                wrapper.style.opacity = '0';
+                wrapper.style.transform = 'translateY(-10px)';
+                setTimeout(() => wrapper.remove(), 500);
+            }
+        }, 5000);
+
+        // Core background pipeline payload dispatch operation handling
+        function markAllRead() {
+            fetch("{% url 'mark_all_read' %}", {
+                method: "POST",
+                headers: {"X-CSRFToken": "{{ csrf_token }}"}
+            }).then(r => r.json()).then(data => {
+                if (data.status === "ok") {
+                    document.querySelectorAll('.notif-unread').forEach(el => {
+                        el.classList.remove('notif-unread');
+                    });
+                    const btn = document.getElementById('mark-all-btn');
+                    if (btn) btn.textContent = 'All read';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

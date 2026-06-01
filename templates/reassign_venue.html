@@ -1,0 +1,271 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reassign Venue | EventPro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --accent: #ff007a;
+            --bg-dark: #070513;
+            --card-glass: rgba(30, 41, 59, 0.45);
+            --text-main: #f9fbff;
+            --text-muted: #94a3b8;
+            --border-glow: rgba(255, 255, 255, 0.08);
+            --blur-panel: blur(20px);
+            --warning-glow: rgba(251, 191, 36, 0.15);
+            --warning-gold: #fbbf24;
+            --error-red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(255, 0, 122, 0.03) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Glassmorphic Panel Wrapper */
+        .form-panel {
+            background: var(--card-glass);
+            backdrop-filter: var(--blur-panel);
+            -webkit-backdrop-filter: var(--blur-panel);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .form-panel h2 {
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-panel p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .form-panel p strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Structural Alert Notice Block */
+        .notice {
+            background: rgba(251, 191, 36, 0.03);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 13px;
+            color: #fef08a;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            box-shadow: inset 0 0 15px var(--warning-glow);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+
+        /* Inputs & Select Elements Matrix */
+        .form-select, textarea {
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.5);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 45px;
+        }
+
+        textarea {
+            font-family: inherit;
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .form-select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+            background: rgba(15, 23, 42, 0.75);
+        }
+
+        .form-select option {
+            background-color: #0f172a;
+            color: var(--text-main);
+        }
+
+        .form-select option.capacity-error {
+            color: var(--error-red);
+            font-weight: 600;
+        }
+
+        .char-tracker {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: -14px;
+            margin-bottom: 24px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Action Layout Interface Row */
+        .btn-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            padding: 14px 24px;
+            border: 1px solid var(--border-glow);
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-cancel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-submit {
+            flex: 1.5;
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #070513;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+            background: linear-gradient(135deg, #7dd3fc, var(--primary));
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-panel">
+        <h2>Reassign Venue — {{ event.title }}</h2>
+        <p>Current infrastructure profile: <strong>{{ event.venue.name }}</strong></p>
+
+        {% if not is_admin %}
+        <div class="notice">
+            ⚠️ <b>Teacher Override System Constraints:</b><br>
+            Modifications are uniquely restricted to <b>PENDING</b> events and must be executed within 72 hours of initialization. A detailed structural justification parameter (min. 20 chars) is strictly enforced. Core Administration will be systematically messaged upon delivery.
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Select Target Venue</label>
+                <select name="venue_id" class="form-select" required>
+                    {% for v in venues %}
+                        <option value="{{ v.id }}" {% if v == event.venue %}selected{% endif %} {% if v.capacity < event.expected_crowd %}class="capacity-error"{% endif %}>
+                            {{ v.name }} — Cap: {{ v.capacity }}
+                            {% if v.capacity < event.expected_crowd %} [⚠️ TOO SMALL FOR EXPECTED CROWD] {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Reason for infrastructure alteration</label>
+                <textarea id="reason-field" name="reason" rows="3" minlength="20" required
+                    placeholder="E.g. Original infrastructure allocation encounters localized hardware maintenance on specified timestamps..."
+                    oninput="document.getElementById('char-count').textContent = this.value.length + ' chars (min 20)'"></textarea>
+            </div>
+            <div class="char-tracker" id="char-count">0 chars (min 20)</div>
+
+            <div class="btn-group">
+                <a href="{% url 'teachers_event_list' %}" class="btn-cancel">
+                    Cancel Matrix
+                </a>
+                <button type="submit" class="btn-submit">
+                    Confirm Venue Change ⚡
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

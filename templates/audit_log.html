@@ -1,0 +1,137 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}
+System Intelligence | Audit Log
+{% endblock %} 
+
+{% block content %}
+<style>
+    :root { 
+        --primary: #38bdf8; 
+        --bg-dark: #070513; 
+        --card-glass: rgba(30, 41, 59, 0.45); 
+        --text-main: #f9fbff; 
+        --text-muted: #94a3b8;
+        --border-glow: rgba(255, 255, 255, 0.08);
+        --blur-panel: blur(20px);
+        
+        --action-create: #00ff99;
+        --action-update: #fbbf24;
+        --action-delete: #f43f5e;
+        --action-auth: #a855f7;
+    }
+
+    * { box-sizing: border-box; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding-top: 20px; }
+    
+    .header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.8px; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    
+    .filter-bar {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-glow);
+        padding: 12px 24px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .audit-table-wrapper {
+        background: var(--card-glass);
+        backdrop-filter: var(--blur-panel);
+        -webkit-backdrop-filter: var(--blur-panel);
+        border-radius: 24px;
+        border: 1px solid var(--border-glow);
+        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { background: rgba(15, 23, 42, 0.6); padding: 18px 24px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); border-bottom: 1px solid var(--border-glow); }
+    td { padding: 16px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); vertical-align: middle; color: #e2e8f0; }
+    
+    .timestamp { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #cbd5e1; white-space: nowrap; }
+    .actor-name { font-weight: 600; color: #ffffff; }
+    .actor-role { font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px; }
+    
+    .action-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .action-create { color: var(--action-create); }
+    .action-update { color: var(--action-update); }
+    .action-delete { color: var(--action-delete); }
+    .action-auth { color: var(--action-auth); }
+
+    .ip-address { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #94a3b8; background: rgba(255, 255, 255, 0.03); padding: 4px 8px; border-radius: 6px; }
+    
+    .nexus-back-trigger { color: #94a3b8 !important; text-decoration: none !important; font-weight: 700 !important; font-size: 14px !important; display: inline-flex !important; align-items: center !important; margin-bottom: 20px; transition: color 0.2s; }
+    .nexus-back-trigger:hover { color: #38bdf8 !important; }
+</style>
+
+<div class="container">
+    {% if user.is_authenticated %}
+        {% if user.profile.college_data.role == 'Admin' or user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+        {% elif user.profile.college_data.role == 'Teacher' %}
+            <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+        {% elif user.profile.college_data.role == 'Student' %}
+            <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+        {% else %}
+            <a href="{% url 'main_page' %}" class="nexus-back-trigger">← Home</a>
+        {% endif %}
+    {% else %}
+        <a href="{% url 'login' %}" class="nexus-back-trigger">← Login</a>
+    {% endif %}
+
+    <header class="header">
+        <div>
+            <h1>Security & Audit Logs</h1>
+            <p>Immutable ledger of operational adjustments and administrative actions.</p>
+        </div>
+        <div class="timestamp" style="color: var(--primary);">System Status: Secure</div>
+    </header>
+
+    <div class="filter-bar">
+        <span>⚡ Showing live cluster operations ledger</span>
+    </div>
+
+    <div class="audit-table-wrapper">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Event Target</th>
+                        <th>Notes</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="timestamp">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>
+                            <span class="actor-name">{{ log.actor.get_full_name|default:log.actor.username }}</span>
+                            <span class="actor-role">{{ log.actor.groups.first.name|default:"Administrator" }}</span>
+                        </td>
+                        <td>
+                            <span class="action-badge {% if log.action == 'CREATE' %}action-create{% elif log.action == 'UPDATE' %}action-update{% elif log.action == 'DELETE' %}action-delete{% else %}action-auth{% endif %}">
+                                {{ log.action }}
+                            </span>
+                        </td>
+                        <td>{{ log.event_name|default:log }}</td>
+                        <td>{{ log.notes|default:"No supplemental parameters captured." }}</td>
+                        <td><span class="ip-address">{{ log.ip_address|default:"0.0.0.0" }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}
+User Profile | College Event Management Portal
+{% endblock %} 
+
+{% block content %} 
+<style>
+    .matrix-full-workspace {
+        display: grid !important;
+        grid-template-columns: 320px 1fr 1fr !important;
+        gap: 24px !important;
+        align-items: start !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-top: 10px;
+    }
+    .nexus-workspace-panel {
+        background: #0b1120 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+        position: relative;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45) !important;
+    }
+    .section-separator-line {
+        border: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
+        margin: 20px 0;
+    }
+    .terminal-hud-menu {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-top: 15px;
+    }
+    .hud-menu-title {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .hud-vector-btn, .nexus-back-trigger {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 12px 16px !important;
+        border-radius: 6px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        color: #cbd5e1 !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        transition: all 0.2s ease;
+    }
+    .hud-vector-btn svg, .nexus-back-trigger svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .hud-vector-btn:hover {
+        background: rgba(0, 240, 255, 0.08) !important;
+        color: #00f0ff !important;
+        border-color: rgba(0, 240, 255, 0.3) !important;
+    }
+    .btn-dashboard svg { stroke: #00f0ff; }
+    .btn-password svg { stroke: #fbbf24; }
+    .btn-logout { color: #f87171 !important; }
+    .btn-logout svg { stroke: #f87171; }
+    .btn-logout:hover {
+        background: rgba(248, 113, 113, 0.08) !important;
+        color: #f87171 !important;
+        border-color: rgba(248, 113, 113, 0.3) !important;
+    }
+    @media (max-width: 1100px) {
+        .matrix-full-workspace { grid-template-columns: 1fr 1fr !important; }
+        .left-telemetry-dock { grid-column: span 2 !important; }
+    }
+    @media (max-width: 768px) {
+        .matrix-full-workspace { grid-template-columns: 1fr !important; }
+        .left-telemetry-dock { grid-column: span 1 !important; }
+    }
+</style>
+
+<div class="nexus-nav-context-bar">
+{% if user.is_authenticated %}
+    {% if user.profile.college_data.role == 'Admin' %}
+        <a href="{% url 'admin_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+            <svg viewBox="0 0 24 24" stroke="#cbd5e1"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Return to Dashboard
+        </a>
+    {% elif user.profile.college_data.role == 'Teacher' %} 
+        <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+            <svg viewBox="0 0 24 24" stroke="#cbd5e1"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Return to Dashboard
+        </a>
+    {% elif user.profile.college_data.role == 'Student' %}
+        <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+            <svg viewBox="0 0 24 24" stroke="#cbd5e1"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Return to Dashboard
+        </a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'login' %}" class="nexus-back-trigger" id="globalBackBtn">
+        <svg viewBox="0 0 24 24" stroke="#cbd5e1"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Return to Login
+    </a>
+{% endif %}
+</div>
+
+<div class="matrix-full-workspace animated-fade-in">
+    <aside class="nexus-workspace-panel left-telemetry-dock">
+        <div class="panel-backlit-glare"></div>
+        
+        <div class="radar-avatar-ring">
+            <div class="avatar-energy-pulse"></div>
+            <div class="avatar-glyph-core {% if request.user.profile.is_banned %}avatar-isolated-lock{% endif %}">
+                {% if request.user.profile.college_data.role == "Admin" %}
+                    AD
+                {% elif request.user.profile.college_data.role == "Teacher" %}
+                    TH
+                {% else %}
+                    {{ request.user.profile.college_data.f_name|slice:":1" }}{{ request.user.profile.college_data.l_name|slice:":1"|default:"ST" }}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="identity-text-cluster">
+            <h2>
+                {% if request.user.profile.college_data.f_name %}
+                    {{ request.user.profile.college_data.f_name }} {{ request.user.profile.college_data.l_name }}
+                {% else %}
+                    {{ request.user.username }}
+                {% endif %}
+            </h2>
+            <p class="crypto-hash-tag">Portal Username: {{ request.user.username }}</p>
+            
+            <div class="dynamic-badge-cloud">
+                {% if request.user.profile.college_data.role == "Admin" %}
+                    <span class="matrix-role-chip rank-tier-admin">🛡️ Admin</span>
+                {% elif request.user.profile.college_data.role == "Teacher" %}
+                    <span class="matrix-role-chip rank-tier-teacher">👨‍🏫 Teacher</span>
+                {% else %}
+                    <span class="matrix-role-chip rank-tier-student">🎓 Student</span>
+                {% endif %}
+
+                {% if request.user.profile.is_banned %}
+                    <span class="matrix-role-chip condition-banned">⚠️ Restricted Access</span>
+                {% else %}
+                    <span class="matrix-role-chip condition-nominal">● Active User</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if request.user.profile.is_banned %}
+        <div class="restriction-manifesto-callout">
+            <div class="manifesto-title">🚨 ACCOUNT ACCESS SUSPENDED</div>
+            <p>"{{ request.user.profile.ban_reason }}"</p>
+        </div>
+        {% endif %}
+
+        <hr class="section-separator-line">
+
+        <div class="terminal-hud-menu">
+            <span class="hud-menu-title">
+                <svg style="width:13px; height:13px; stroke:#64748b;" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Dashboard Quick Links
+            </span>
+            {% if user.is_authenticated %}
+                {% if user.profile.college_data.role == 'Admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="hud-vector-btn btn-dashboard">
+                        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Return to Dashboard
+                    </a>
+                {% elif user.profile.college_data.role == 'Teacher' %}
+                    <a href="{% url 'teacher_dashboard' %}" class="hud-vector-btn btn-dashboard">
+                        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Return to Dashboard
+                    </a>
+                {% elif user.profile.college_data.role == 'Student' %}
+                    <a href="{% url 'student_dashboard' %}" class="hud-vector-btn btn-dashboard">
+                        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Return to Dashboard
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="nexus-back-trigger" id="globalBackBtn">
+                    <svg viewBox="0 0 24 24" stroke="#64748b"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    Return to Login
+                </a>
+            {% endif %}
+            <a href="{% url 'reset_password' %}" class="hud-vector-btn btn-password">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Change Password
+            </a>        
+            <a href="{% url 'logout_view' %}" class="hud-vector-btn btn-logout">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Logout Session
+            </a>
+        </div>
+    </aside>
+
+    <main class="nexus-workspace-panel center-telemetry-dock">
+        <div class="dock-header-block">
+            <h3>
+                <svg style="width:18px; height:18px; stroke:#00f0ff; fill:none; stroke-width:2; vertical-align:middle; margin-right:6px;" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>General Information & Contact Details
+            </h3>
+            <p>Official registration records mapped within the campus database.</p>
+        </div>
+
+        <div class="structural-profile-matrix">
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">College ID / Roll Number</span>
+                <span class="matrix-row-value glow-field-cyan">{{ request.user.profile.college_data.college_id }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">College Name</span>
+                <span class="matrix-row-value">{{ request.user.profile.college_data.get_college_display }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Department / Branch</span>
+                <span class="matrix-row-value glow-field-rose">{{ request.user.profile.college_data.branch|default:"Not Configured" }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Email Address</span>
+                <span class="matrix-row-value" style="color: #ffffff;">{{ request.user.profile.college_data.email }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Phone Number</span>
+                <span class="matrix-row-value glow-field-cyan">{% firstof request.user.profile.phone request.user.profile.college_data.phone "No Line Verified" %}</span>
+            </div>
+        </div>
+    </main>
+
+    <aside class="nexus-workspace-panel right-telemetry-dock">
+        <div class="dock-header-block">
+            <h3>
+                <svg style="width:18px; height:18px; stroke:#00f0ff; fill:none; stroke-width:2; vertical-align:middle; margin-right:6px;" viewBox="0 0 24 24"><path d="M4.5 16.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm10.5 3h3M18 15h6M19.5 18h3"/></svg>Personal Information
+            </h3>
+            <p>Verification data attributes linked to your account identity.</p>
+        </div>
+
+        <div class="structural-profile-matrix">
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Date of Birth</span>
+                <span class="matrix-row-value">{{ request.user.profile.college_data.dob|date:"Y-m-d"|default:"Unassigned" }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Gender Orientation</span>
+                <span class="matrix-row-value">{{ request.user.profile.college_data.gender|default:"Unconfigured" }}</span>
+            </div>
+
+            {% if request.user.profile.college_data.role == "Teacher" %}
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Academic Designation</span>
+                <span class="matrix-row-value glow-field-emerald">{{ request.user.profile.college_data.designation|default:"Faculty Member" }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Event Verification Clearance</span>
+                <span class="matrix-row-value" style="color: #ffffff;">Authorized Coordinator</span>
+            </div>
+            
+            {% elif request.user.profile.college_data.role == "Admin" %}
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">System Access Profile</span>
+                <span class="matrix-row-value glow-field-amber">Portal Administrator</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Audit Log Privileges</span>
+                <span class="matrix-row-value glow-field-emerald">Full Read/Write Registry</span>
+            </div>
+            
+            {% else %}
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Father's Name</span>
+                <span class="matrix-row-value">{{ request.user.profile.college_data.father_name|default:"Not Tracked" }}</span>
+            </div>
+            <div class="structural-matrix-row">
+                <span class="matrix-row-label">Mother's Name</span>
+                <span class="matrix-row-value">{{ request.user.profile.college_data.mother_name|default:"Not Tracked" }}</span>
+            </div>
+            {% endif %}
+
+            <div class="structural-matrix-row extended-block-layout">
+                <span class="matrix-row-label">Residential Address</span>
+                <div class="matrix-unbounded-value">
+                    {{ request.user.profile.college_data.address|default:"No physical address registered in the database logs." }}
+                </div>
+            </div>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}

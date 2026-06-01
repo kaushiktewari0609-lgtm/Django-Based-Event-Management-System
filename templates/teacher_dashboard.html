@@ -1,0 +1,677 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Command Center | Nexus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --primary-hover: #7dd3fc;
+            --accent: #ff007a;
+            --bg-deep: #070513;
+            --surface-card: rgba(30, 41, 59, 0.4);
+            --border-ether: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 50%);
+            height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Navigation Frame --- */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px 30px;
+            z-index: 100;
+            /* Added a solid dark backing tint to prevent SVG image layers from washing out top menu visibility */
+            background: linear-gradient(180deg, #0f172a 0%, rgba(15, 23, 42, 0.95) 30%, rgba(7, 5, 19, 0.98) 100%), url("{% static 'TEC1.svg' %}");
+            background-size: cover;
+            background-position: center;
+            border-right: 1px solid var(--border-ether);
+        }
+
+        .logo-section {
+            padding: 0 12px;
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-section span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            flex-grow: 1;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .nav-links::-webkit-scrollbar {
+            width: 4px;
+        }
+        .nav-links::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 2px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+        }
+
+        .nav-links li a:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Previous Events Text Link Base */
+        .prev-events-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 14px;
+            color: #ffffff !important; /* Forces link row text to clear, visible white */
+        }
+
+        .prev-events-icon {
+            height: 40px;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logout-btn {
+            padding: 12px 12px;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.2s;
+            margin-top: auto;
+            border-top: 1px solid var(--border-ether);
+            padding-top: 20px;
+        }
+
+        .logout-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* --- Main App Workspace --- */
+        .main-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 50px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* --- Notification Alert Channels --- */
+        #message-wrapper {
+            margin-bottom: 32px;
+        }
+
+        .message-container {
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .msg-success {
+            background: rgba(16, 185, 129, 0.06);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid var(--success);
+        }
+
+        .msg-error {
+            background: rgba(239, 68, 68, 0.06);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid var(--error);
+        }
+
+        .msg-warning {
+            background: rgba(245, 158, 11, 0.06);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.2);
+            border-left: 4px solid var(--warning);
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- Workspace Control Header --- */
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .workspace-title h1 {
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        /* Fixed Title Text Colors */
+        .workspace-title h1 span.greeting {
+            color: #ffffff; 
+            font-weight: 400;
+        }
+
+        .workspace-title h1 span.user-target {
+            color: #ffffff;
+            background: none;
+            -webkit-background-clip: initial;
+            -webkit-text-fill-color: initial;
+        }
+
+        .workspace-title p {
+            color: var(--text-muted);
+            font-size: 14.5px;
+        }
+
+        /* --- Analytic Metric Grid --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--surface-card);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--border-ether);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            border-color: rgba(56, 189, 248, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h4 {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .stat-card.accented-metric .value {
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(255, 0, 122, 0.15);
+        }
+
+        .stat-card.dark-hero {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.3) 100%);
+            border-color: rgba(56, 189, 248, 0.15);
+        }
+
+        .stat-card.dark-hero .value {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        /* --- Dashboard Split Viewports --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--surface-card);
+            border-radius: 24px;
+            border: 1px solid var(--border-ether);
+            padding: 28px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        /* --- Grid Table Engine --- */
+        .event-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .event-table th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-ether);
+        }
+
+        .event-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .event-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* --- Badge Systems --- */
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .status-APPROVED {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .status-PENDING {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        /* --- Activity Streams --- */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .notif-unread {
+            background: rgba(56, 189, 248, 0.02);
+            border-left: 3px solid var(--primary);
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .student-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(56, 189, 248, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            flex-shrink: 0;
+        }
+
+        .activity-info p {
+            font-size: 13.5px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        .activity-info span {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* --- Interactive Action Controls --- */
+        .btn-primary {
+            background: var(--primary);
+            color: #070513;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13.5px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-link {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+        }
+
+        .btn-link:hover {
+            color: var(--primary-hover);
+        }
+
+        .mark-read-btn {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 14px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            border: 1px solid var(--border-ether);
+            border-radius: 8px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        
+        .mark-read-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        #icon {
+            height: 40px;
+            display: block;
+        }
+        #ico {
+            height: 13px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- --- System Master Navigation Sidebar --- -->
+    <div class="sidebar">
+        <!-- Rebranded Application Name to Nexus -->
+        <div class="logo-section">Nex<span>us</span></div>
+        <ul class="nav-links">
+            <li><a href="{% url 'profile' %}"><img src="{% static 'PROFILE.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'check_status' %}"><img src="{% static 'EVENTSTATUS1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'upcoming_events' %}"><img src="{% static 'UPCOMEVENT1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'teacher_my_events'%}"><img src="{% static 'MYEVENTS1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'cancel_event_list' %}"><img src="{% static 'EVENTCANCEL1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'teachers_event_list'%}"><img src="{% static 'UPDEVENTS1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'students_registered'%}"><img src="{% static 'REGISTUD.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'verify_event_passes'%}"><img src="{% static 'VERFPASS1.svg' %}" id="icon"></a></li>
+            <li><a href="{% url 'manage_events'%}"><img src="{% static 'MANAGELOGISTICS1.svg' %}" id="icon"></a></li>
+            
+            <!-- Previous Events Entry Container with clear, high-contrast white text -->
+            <li>
+                <a href="{% url 'prev_events' %}" class="prev-events-link">
+                    <div class="prev-events-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    Previous Events
+                </a>
+            </li>
+        </ul>
+        <a href="{% url 'logout_view' %}" class="logout-btn"><img src="{% static 'LOGOUTTEXT.svg' %}" id="ico"></a>
+    </div>
+
+    <!-- --- Primary Core Space Workspace --- -->
+    <div class="main-content">
+
+        <!-- Active Flash Status Alerts -->
+        {% if messages %}
+        <div id="message-wrapper">
+            {% for message in messages %}
+            <div class="message-container msg-{{ message.tags }}">
+                <span>{% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}</span>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Panel Core Workspace Control Header -->
+        <div class="workspace-header">
+            <div class="workspace-title">
+                <h1>
+                    <span class="greeting">Welcome back,</span> 
+                    <span class="user-target">Prof. {{ request.user.first_name }}</span>
+                </h1>
+                <p>Here is what's happening with your events today.</p>
+            </div>
+            <a href="{% url 'schedule_event' %}" class="btn-primary">+ Create Event</a>
+        </div>
+
+        <!-- Metric Management Matrices Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Events</h4>
+                <div class="value">{{ total_events }}</div>
+            </div>
+            <div class="stat-card accented-metric">
+                <h4>Pending Approval</h4>
+                <div class="value">{{ pending_approvals }}</div>
+            </div>
+            <div class="stat-card dark-hero">
+                <h4>Total Student Reach</h4>
+                <div class="value">{{ total_reach }}</div>
+            </div>
+            <div class="stat-card">
+                <h4>Messages</h4>
+                <div class="value">0</div>
+            </div>
+        </div>
+
+        <!-- Analytical Splitting Control View -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Data Grid Block -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Recent Event Submissions</h3>
+                    <a href="{% url 'teachers_event_list' %}" class="btn-link">View All</a>
+                </div>
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Reg.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in my_recent_events %}
+                        <tr>
+                            <td style="font-weight: 600; color: #ffffff;">{{ event.name }}</td>
+                            <td style="color: var(--text-muted);">{{ event.date|date:"d M" }}</td>
+                            <td><span class="status-badge status-{{ event.status }}">{{ event.status }}</span></td>
+                            <td style="font-weight: 700; color: var(--primary);">{{ event.eventregistration_set.count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                No events found. Start by creating one!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Right Feed Metrics Block -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Recent Activity</h3>
+                    {% if recent_registrations or recent_notifications %}
+                    <button id="mark-all-btn" class="mark-read-btn" onclick="markAllRead()">
+                        Mark all read
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <div class="activity-feed">
+                    {% for reg in recent_registrations %}
+                    <div class="activity-item notif-unread">
+                        <div class="student-avatar">{{ reg.student.first_name|first }}</div>
+                        <div class="activity-info">
+                            <p><b>{{ reg.student.get_full_name }}</b> joined <b>{{ reg.event.name }}</b></p>
+                            <span>{{ reg.registered_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    {% endfor %}
+                    
+                    {% for notify in recent_notifications %}
+                    <div class="activity-item notif-unread">
+                        <div class="activity-info" style="padding-left: 4px;">
+                            <p><b>{{ notify.message }}</b></p>
+                            <span>{{ notify.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                        {% if not recent_registrations %}
+                        <p style="text-align: center; color: var(--text-muted); padding: 48px;">
+                            No new registrations yet.
+                        </p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Interface Animation & Message Pipeline Controls -->
+    <script>
+        setTimeout(function () {
+            const wrapper = document.getElementById('message-wrapper');
+            if (wrapper) {
+                wrapper.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                wrapper.style.opacity = '0';
+                wrapper.style.transform = 'translateY(-8px)';
+                setTimeout(() => wrapper.remove(), 600);
+            }
+        }, 5000);
+
+        function markAllRead() {
+            fetch("{% url 'mark_all_read' %}", {
+                method: "POST",
+                headers: {"X-CSRFToken": "{{ csrf_token }}"}
+            }).then(r => r.json()).then(data => {
+                if (data.status === "ok") {
+                    document.querySelectorAll('.notif-unread').forEach(el => {
+                        el.classList.remove('notif-unread');
+                    });
+                    const btn = document.getElementById('mark-all-btn');
+                    if (btn) btn.textContent = 'All read';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

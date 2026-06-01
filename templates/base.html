@@ -1,0 +1,370 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nexus | Command Matrix{% endblock %}</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'matrix/css/core_system.css' %}">
+    
+    <style>
+        /* --- Root Variable Definitions --- */
+        :root {
+            --surface-deep: #060913;
+            --surface-card: #0b1120;
+            --neon-cyan: #00f0ff;
+            --neon-rose: #ff007f;
+            --neon-emerald: #39ff14;
+            --neon-amber: #ffaa00;
+            --crimson-alert: #ef4444;
+            --slate-muted: #64748b;
+            --slate-light: #cbd5e1;
+            --border-ether: rgba(255, 255, 255, 0.08);
+            --glare-effect: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+
+        /* --- Fundamental Reset Rules --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--surface-deep);
+            font-family: 'Space Grotesk', sans-serif;
+            color: #ffffff;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Main Frame Architecture --- */
+        .nexus-viewport-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Cleaned Global Header Styling --- */
+        .nexus-global-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 20px 40px; 
+            background: var(--surface-card); 
+            border-bottom: 1px solid var(--border-ether);
+        }
+        .nexus-branding h1 {
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 700;
+        }
+        .nexus-branding a {
+            color: #ffffff; 
+            text-decoration: none; 
+            letter-spacing: 0.5px;
+            transition: text-shadow 0.2s ease;
+        }
+        .nexus-branding a:hover {
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        .nexus-user-tools {
+            font-size: 13px; 
+            color: var(--slate-light);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* --- Global Dynamic Navigation Context (Back Bar) --- */
+        .nexus-nav-context-bar {
+            max-width: 1320px;
+            width: 100%;
+            margin: 20px auto 0 auto;
+            padding: 0 24px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- Smart Back Trigger UI --- */
+        .nexus-back-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--slate-muted);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nexus-back-trigger:hover {
+            color: var(--neon-cyan);
+            border-color: rgba(0, 240, 255, 0.2);
+            background: rgba(0, 240, 255, 0.04);
+            transform: translateX(-4px);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+        }
+
+        .nexus-core-stage {
+            flex: 1 0 auto;
+            padding: 24px 24px 48px 24px; /* Optimized spacing */
+            max-width: 1320px;
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .nexus-terminal-footer {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 20px;
+            color: var(--slate-muted);
+            font-size: 11px;
+            letter-spacing: 1px;
+            border-top: 1px solid var(--border-ether);
+            background: rgba(6, 9, 19, 0.8);
+        }
+
+        /* --- Panel Header Components --- */
+        .dashboard-intro-block {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-ether);
+            padding-bottom: 20px;
+        }
+        .dashboard-intro-block h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.03em;
+            margin: 0 0 6px 0;
+        }
+        .dashboard-intro-block p {
+            color: var(--slate-muted);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* --- Interactive Registry Matrix Grid --- */
+        .catalog-deck-mesh {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 28px;
+            margin-bottom: 48px;
+        }
+
+        .member-profile-capsule {
+            background: var(--surface-card);
+            border: 1px solid var(--border-ether);
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+        }
+        .member-profile-capsule:hover {
+            transform: translateY(-6px);
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glare-effect);
+        }
+        .member-profile-capsule.flagged-state {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: linear-gradient(145deg, var(--surface-card), rgba(239, 68, 68, 0.02));
+        }
+
+        /* --- Account Info Block Structuring --- */
+        .identity-meta-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .badge-initials-glyph {
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .member-profile-capsule.flagged-state .badge-initials-glyph {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: var(--crimson-alert);
+            color: var(--crimson-alert);
+        }
+
+        .operational-status-tag {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tag-verified { background: rgba(57, 255, 20, 0.1); color: var(--neon-emerald); }
+        .tag-suspended { background: rgba(239, 68, 68, 0.15); color: var(--crimson-alert); }
+
+        .user-primary-title { font-size: 1.25rem; font-weight: 600; color: #ffffff; margin-bottom: 2px; }
+        .user-digital-handle { font-size: 13px; color: var(--slate-muted); margin-bottom: 24px; }
+
+        /* --- Data Row Specifications --- */
+        .attribute-compact-ledger {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-ether);
+        }
+        .ledger-entry-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; }
+        .ledger-entry-row:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .ledger-field-name { color: var(--slate-muted); }
+        .ledger-field-data { color: var(--slate-light); font-weight: 500; }
+
+        /* --- Form Fields & Text Input Systems --- */
+        .incident-report-memo { margin-bottom: 20px; }
+        .incident-report-memo label {
+            display: block; font-size: 10px; text-transform: uppercase; font-weight: 600; color: var(--slate-muted); margin-bottom: 8px; letter-spacing: 1px;
+        }
+        .incident-report-memo textarea {
+            width: 100%; height: 70px; background: rgba(6, 9, 19, 0.6); border: 1px solid var(--border-ether); border-radius: 6px; padding: 10px; color: #ffffff; font-size: 13px; font-family: inherit; box-sizing: border-box; resize: none; transition: border-color 0.2s ease;
+        }
+        .incident-report-memo textarea:focus { border-color: var(--neon-cyan); outline: none; }
+
+        /* --- Interface Trigger Buttons --- */
+        .interface-trigger-btn {
+            width: 100%; padding: 12px; border-radius: 6px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease; border: none;
+        }
+        .trigger-restrict { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--crimson-alert); }
+        .trigger-restrict:hover { background: var(--crimson-alert); color: #ffffff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .trigger-liberate { background: rgba(57, 255, 20, 0.08); border: 1px solid rgba(57, 255, 20, 0.3); color: var(--neon-emerald); }
+        .trigger-liberate:hover { background: var(--neon-emerald); color: var(--surface-deep); box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); }
+
+        /* --- Empty Records Viewport --- */
+        .null-records-canvas { text-align: center; padding: 70px 24px; background: var(--surface-card); border: 1px solid var(--border-ether); border-radius: 12px; }
+        .null-records-canvas h2 { color: #ffffff; margin-bottom: 10px; font-weight: 600; }
+        .null-records-canvas p { color: var(--slate-muted); font-size: 14px; margin: 0; }
+        
+        /* --- Matrix Profile Identity Overrides --- */
+        .node-linkup-container { display: flex; gap: 10px; margin-top: 10px; }
+        .segment-heading-token { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--neon-cyan); letter-spacing: 1.5px; margin-bottom: 16px; }
+
+        /* --- Custom Identity Tag Matrices --- */
+        .rank-tier-student { background: rgba(0, 240, 255, 0.1) !important; color: var(--neon-cyan) !important; border: 1px solid rgba(0, 240, 255, 0.2) !important; }
+        .rank-tier-faculty { background: rgba(57, 255, 20, 0.1) !important; color: var(--neon-emerald) !important; border: 1px solid rgba(57, 255, 20, 0.2) !important; }
+        .rank-tier-root { background: rgba(255, 170, 0, 0.1) !important; color: var(--neon-amber) !important; border: 1px solid rgba(255, 170, 0, 0.2) !important; }
+        .condition-nominal { background: rgba(57, 255, 20, 0.05) !important; color: var(--neon-emerald) !important; border: 1px solid rgba(57, 255, 20, 0.15) !important; }
+        .condition-banned { background: rgba(239, 68, 68, 0.12) !important; color: var(--crimson-alert) !important; border: 1px solid rgba(239, 68, 68, 0.25) !important; }
+
+        .avatar-glow-alert { border-color: var(--crimson-alert) !important; color: var(--crimson-alert) !important; background: rgba(239, 68, 68, 0.1) !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+
+        /* --- Alert Modules --- */
+        .restriction-manifesto-callout { margin-top: 24px; background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 16px 20px; }
+        .restriction-manifesto-callout .manifesto-title { font-size: 11px; font-weight: 700; color: var(--crimson-alert); letter-spacing: 1px; margin-bottom: 6px; }
+        .restriction-manifesto-callout p { margin: 0; font-size: 14px; color: var(--slate-light); font-style: italic; }
+
+        /* --- Chromatic Light Fields --- */
+        .glow-field-cyan { color: var(--neon-cyan) !important; text-shadow: 0 0 8px rgba(0, 240, 255, 0.3); font-family: monospace; }
+        .glow-field-rose { color: var(--neon-rose) !important; text-shadow: 0 0 8px rgba(255, 0, 127, 0.3); font-weight: 600; }
+        .glow-field-emerald { color: var(--neon-emerald) !important; text-shadow: 0 0 8px rgba(57, 255, 20, 0.3); font-weight: 600; }
+        .glow-field-amber { color: var(--neon-amber) !important; text-shadow: 0 0 8px rgba(255, 170, 0, 0.3); font-weight: 600; }
+
+        /* --- Expanded Information Displays --- */
+        .structural-matrix-row.extended-block-layout { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .matrix-unbounded-value { color: var(--slate-light); line-height: 1.6; font-size: 14px; width: 100%; }
+
+        /* --- Unique Profile Layout Configs --- */
+        .profile-workspace-wrapper { max-width: 760px; margin: 48px auto; }
+        .monolith-display-card { background: var(--surface-card); border: 1px solid var(--border-ether); border-radius: 12px; padding: 40px; }
+        .identity-composite-hub { display: flex; align-items: center; gap: 28px; }
+        .profile-avatar-monolith { width: 76px; height: 76px; background: rgba(0, 240, 255, 0.05); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 26px; }
+        .identity-text-stack h1 { font-size: 1.8rem; font-weight: 700; color: #ffffff; margin: 0 0 6px 0; letter-spacing: -0.02em; }
+        .identity-subtext-handle { color: var(--slate-muted); font-size: 14px; margin: 0 0 12px 0; }
+        .identity-role-chip { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: rgba(255, 0, 127, 0.1); color: var(--neon-rose); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(255, 0, 127, 0.2); }
+        .section-separator-line { border: none; border-top: 1px solid var(--border-ether); margin: 32px 0; }
+
+        .structural-profile-matrix { display: flex; flex-direction: column; gap: 14px; }
+        .structural-matrix-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: rgba(0, 0, 0, 0.2); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.02); font-size: 14px; }
+        .matrix-row-label { color: var(--slate-muted); }
+        .matrix-row-value { color: #ffffff; font-weight: 500; }
+        .pulse-indicator-active { color: var(--neon-emerald); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+
+        .terminal-actions-section { margin-top: 32px; }
+        .system-action-trigger { display: block; width: 100%; text-align: center; box-sizing: border-box; padding: 16px; border-radius: 6px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; cursor: pointer; transition: all 0.2s ease; }
+        .action-trigger-destructive { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--crimson-alert); }
+        .action-trigger-destructive:hover { background: var(--crimson-alert); color: #ffffff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        
+        /* --- Toast Notification Layout --- */
+        .global-toast-container { position: fixed; top: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; }
+        .toast-capsule { background: var(--surface-card); border: 1px solid var(--border-ether); border-left: 4px solid var(--neon-cyan); padding: 16px 20px; color: #fff; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; transition: opacity 0.5s ease; }
+        .toast-success { border-left-color: var(--neon-emerald); }
+        .toast-error { border-left-color: var(--crimson-alert); }
+        .toast-warning { border-left-color: var(--neon-amber); }
+    </style>
+    {% block extrahead %}{% endblock %}
+</head>
+<body>
+
+    {% if messages %}
+    <div class="global-toast-container">
+        {% for message in messages %}
+            <div class="toast-capsule toast-{{ message.tags }}" onclick="this.remove()">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.toast-capsule').forEach(t => {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 500);
+            });
+        }, 5000);
+    </script>
+    {% endif %}
+
+    <div class="nexus-viewport-shell">
+        <header class="nexus-global-header">
+            <div class="nexus-branding">
+                <h1 id="site-name">
+                    <a href="{% url 'admin:index' %}">⚡ NEXUS CORE PLATFORM</a>
+                </h1>
+            </div>
+            <div class="nexus-user-tools">
+                {% if user.is_authenticated %}
+                    Operator: <strong style="color: var(--neon-cyan);">{{ user.username }}</strong>
+                {% endif %}
+            </div>
+        </header>
+        <main class="nexus-core-stage">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="nexus-terminal-footer">
+            &copy; 2026 NEXUS ARCHITECTURE MATRIX | ENCRYPTED RUNTIME INSTANCE
+        </footer>
+    </div>
+
+    <script>
+        // Auto-hide back button if we are already on the absolute landing dashboard
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentPath = window.location.pathname;
+            const backBtn = document.getElementById('globalBackBtn');
+            // If on home/admin root, seamlessly hide the back trigger to prevent redundant rendering
+            if (currentPath === '/' || currentPath.endsWith('/admin/')) {
+                if (backBtn) backBtn.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

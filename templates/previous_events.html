@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Event Archive | Nexus{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #070513 !important;
+        background-image: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 60%) !important;
+    }
+
+    .archive-workspace-viewport { 
+        max-width: 1200px !important; 
+        margin: 0 auto !important; 
+        padding: 40px 24px 64px 24px !important;
+        box-sizing: border-box !important;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    }
+
+    /* --- Workspace Alignment Header Block --- */
+    .archive-header-flex { 
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-end !important;
+        gap: 24px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding-bottom: 24px !important;
+        margin-bottom: 48px !important;
+    }
+    
+    .archive-title-area h1 { 
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-size: 2.2rem !important; 
+        font-weight: 800 !important; 
+        letter-spacing: -0.02em !important; 
+        margin: 0 0 8px 0 !important; 
+        color: #ffffff !important;
+        line-height: 1.2 !important;
+    }
+    
+    .archive-title-area p { 
+        color: #94a3b8 !important; 
+        font-size: 15px !important; 
+        margin: 0 !important;
+        line-height: 1.5 !important;
+    }
+
+    /* --- Responsive Cards CSS Grid Engine --- */
+    .event-matrix-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+        gap: 32px !important;
+        width: 100% !important;
+    }
+
+    /* --- Cyberpunk Glassmorphism Cards --- */
+    .archive-past-card {
+        background: rgba(15, 18, 53, 0.6) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-radius: 24px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        overflow: hidden !important;
+        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        box-sizing: border-box !important;
+    }
+
+    .archive-past-card:hover {
+        transform: translateY(-6px) !important;
+        border-color: #38bdf8 !important;
+        box-shadow: 0 20px 40px rgba(56, 189, 248, 0.12) !important;
+    }
+
+    .poster-viewport-frame {
+        height: 190px !important;
+        position: relative !important;
+        background: #101436 !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .poster-viewport-frame img {
+        width: 100% !important; 
+        height: 100% !important; 
+        object-fit: cover !important; 
+        opacity: 0.55 !important;
+        transition: opacity 0.3s ease !important;
+    }
+    
+    .archive-past-card:hover .poster-viewport-frame img {
+        opacity: 0.8 !important;
+    }
+
+    .completed-system-tag {
+        position: absolute !important; 
+        top: 16px !important; 
+        right: 16px !important;
+        background: rgba(7, 5, 19, 0.75) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        padding: 6px 14px !important; 
+        border-radius: 50px !important;
+        font-size: 11px !important; 
+        font-weight: 800 !important; 
+        color: #94a3b8 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        letter-spacing: 1px !important;
+        text-transform: uppercase !important;
+    }
+
+    .card-workspace-content { 
+        padding: 28px !important; 
+        flex-grow: 1 !important; 
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .college-network-tag { 
+        font-size: 11px !important; 
+        font-weight: 700 !important; 
+        color: #38bdf8 !important; 
+        text-transform: uppercase !important; 
+        letter-spacing: 1.5px !important; 
+        margin-bottom: 10px !important; 
+        display: block !important;
+    }
+
+    .event-main-title { 
+        font-size: 1.35rem !important; 
+        font-weight: 800 !important; 
+        margin: 0 0 14px 0 !important; 
+        line-height: 1.4 !important; 
+        color: #ffffff !important;
+        letter-spacing: -0.01em !important;
+    }
+    
+    .card-metric-meta { 
+        display: flex !important; 
+        align-items: center !important; 
+        gap: 16px !important; 
+        font-size: 13.5px !important; 
+        color: #94a3b8 !important; 
+        font-weight: 600 !important;
+        margin-top: auto !important;
+    }
+
+    .card-action-footer {
+        padding: 20px 28px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        background: rgba(0, 0, 0, 0.2) !important;
+        display: flex !important; 
+        justify-content: space-between !important; 
+        align-items: center !important;
+    }
+
+    .btn-insights-link {
+        color: #f8fafc !important; 
+        text-decoration: none !important; 
+        font-size: 13px !important; 
+        font-weight: 700 !important;
+        display: inline-flex !important; 
+        align-items: center !important; 
+        gap: 6px !important; 
+        transition: color 0.2s ease !important;
+    }
+    
+    .btn-insights-link:hover { 
+        color: #38bdf8 !important; 
+    }
+
+    /* --- Empty State Configuration --- */
+    .empty-logs-banner {
+        grid-column: 1 / -1 !important; 
+        text-align: center !important; 
+        padding: 80px 24px !important;
+        background: rgba(255, 255, 255, 0.01) !important; 
+        border-radius: 24px !important;
+        border: 2px dashed rgba(255, 255, 255, 0.06) !important;
+    }
+    
+    .empty-logs-banner p {
+        color: #94a3b8 !important; 
+        font-size: 15px !important;
+        margin: 0 !important;
+    }
+
+    /* --- Adaptive Navigation Action Trigger --- */
+    .nexus-back-trigger {
+        color: #94a3b8 !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        transition: color 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    
+    .nexus-back-trigger:hover {
+        color: #38bdf8 !important;
+    }
+
+    @media (max-width: 768px) { 
+        .archive-header-flex { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+        .event-matrix-grid { grid-template-columns: 1fr !important; } 
+    }
+</style>
+
+<div class="archive-workspace-viewport">
+    
+    <div class="archive-header-flex">
+        <div class="archive-title-area">
+            <h1>Event Archive</h1>
+            <p>Relive the performance logs and metric parameters from historical programs on Nexus.</p>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                {% if user.profile.college_data.role == 'Admin' or user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">← Dashboard</a>
+                {% elif user.profile.college_data.role == 'Teacher' %}
+                    <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">← Dashboard</a>
+                {% elif user.profile.college_data.role == 'Student' %}
+                    <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">← Dashboard</a>
+                {% else %}
+                    <a href="{% url 'main_page' %}" class="nexus-back-trigger" id="globalBackBtn">← Home</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="nexus-back-trigger" id="globalBackBtn">← Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="event-matrix-grid">
+        {% for event in events %}
+        <div class="archive-past-card">
+            <div class="poster-viewport-frame">
+                {% if event.poster %}
+                    <img src="{{ event.poster.url }}" alt="{{ event.name }}">
+                {% else %}
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#101436; color:rgba(255,255,255,0.05); font-size:3.5rem;">🏛️</div>
+                {% endif %}
+                <span class="completed-system-tag">COMPLETED</span>
+            </div>
+
+            <div class="card-workspace-content">
+                <span class="college-network-tag">{{ event.college_profile.college_name|default:"Nexus Shared Network" }}</span>
+                <h2 class="event-main-title">{{ event.name }}</h2>
+                <div class="card-metric-meta">
+                    <span>📅 {{ event.date|date:"M d, Y" }}</span>
+                    <span>👥 {{ event.eventregistration_set.count|default:"0" }} Attended</span>
+                </div>
+            </div>
+
+            <div class="card-action-footer">
+                <a href="{% url 'event_feedback_summary' event.id %}" class="btn-insights-link">Feedback Insights →</a>
+                <span style="font-size: 11px; font-weight: 700; color: #475569;">ID: #{{ event.id }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-logs-banner">
+            <p>The historical archive metrics logs are currently empty.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block layout %}
+<div class="archive-workspace-viewport">
+    <div class="archive-header-flex">
+        <div class="archive-title-area">
+            <h1>Event Archive</h1>
+            <p>Relive the performance logs and metric parameters from historical programs on Nexus.</p>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                {% if user.profile.college_data.role == 'Admin' or user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+                {% elif user.profile.college_data.role == 'Teacher' %}
+                    <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+                {% elif user.profile.college_data.role == 'Student' %}
+                    <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger">← Dashboard</a>
+                {% else %}
+                    <a href="{% url 'main_page' %}" class="nexus-back-trigger">← Home</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="nexus-back-trigger">← Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="event-matrix-grid">
+        {% for event in events %}
+        <div class="archive-past-card">
+            <div class="poster-viewport-frame">
+                {% if event.poster %}
+                    <img src="{{ event.poster.url }}" alt="{{ event.name }}">
+                {% else %}
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#101436; color:rgba(255,255,255,0.05); font-size:3.5rem;">🏛️</div>
+                {% endif %}
+                <span class="completed-system-tag">COMPLETED</span>
+            </div>
+
+            <div class="card-workspace-content">
+                <span class="college-network-tag">{{ event.college_profile.college_name|default:"Nexus Shared Network" }}</span>
+                <h2 class="event-main-title">{{ event.name }}</h2>
+                <div class="card-metric-meta">
+                    <span>📅 {{ event.date|date:"M d, Y" }}</span>
+                    <span>👥 {{ event.eventregistration_set.count|default:"0" }} Attended</span>
+                </div>
+            </div>
+
+            <div class="card-action-footer">
+                <a href="{% url 'event_feedback_summary' event.id %}" class="btn-insights-link">Feedback Insights →</a>
+                <span style="font-size: 11px; font-weight: 700; color: #475569;">ID: #{{ event.id }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-logs-banner">
+            <p>The historical archive metrics logs are currently empty.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

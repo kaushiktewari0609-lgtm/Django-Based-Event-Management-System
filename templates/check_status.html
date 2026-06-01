@@ -1,0 +1,519 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nexus | Event Tracking Matrix{% endblock %}
+
+{% block extrahead %}
+<style>
+    /* --- Master Theme Color Variables Fallback Layer --- */
+    :root {
+        --neon-cyan: #00f0ff;
+        --neon-emerald: #39ff14;
+        --neon-amber: #ffaa00;
+        --crimson-alert: #ef4444;
+        --border-ether: rgba(255, 255, 255, 0.08);
+        --slate-muted: #94a3b8;
+        --slate-light: #cbd5e1;
+        --glare-effect: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    /* --- Master Frame Full-Width Architecture --- */
+    .nexus-workspace-container {
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    /* --- Viewport Header Callout --- */
+    .board-intro-block {
+        margin-bottom: 28px;
+    }
+    .board-intro-block h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 6px 0;
+        color: #ffffff;
+    }
+    .board-intro-block p {
+        color: var(--slate-muted);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* --- Glassmorphic Matrix Table Deck --- */
+    .matrix-table-container {
+        background: rgba(11, 17, 32, 0.6);
+        border: 1px solid var(--border-ether);
+        border-radius: 14px;
+        overflow: hidden;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .matrix-ledger-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        table-layout: fixed;
+    }
+
+    /* Core Geometric Grid Constraints */
+    .matrix-ledger-table th:nth-child(1), .matrix-ledger-table td:nth-child(1) { width: 35%; } 
+    .matrix-ledger-table th:nth-child(2), .matrix-ledger-table td:nth-child(2) { width: 25%; } 
+    .matrix-ledger-table th:nth-child(3), .matrix-ledger-table td:nth-child(3) { width: 22%; }
+    .matrix-ledger-table th:nth-child(4), .matrix-ledger-table td:nth-child(4) { width: 18%; }
+
+    .matrix-ledger-table th {
+        background: rgba(0, 240, 255, 0.03);
+        padding: 16px 20px;
+        color: var(--neon-cyan);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border-ether);
+    }
+
+    .matrix-ledger-table td {
+        padding: 20px;
+        border-bottom: 1px solid var(--border-ether);
+        vertical-align: middle;
+    }
+
+    .matrix-ledger-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .matrix-ledger-table tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+        transition: background 0.25s ease;
+    }
+
+    /* --- Typography and Metadata Elements --- */
+    .event-node-title {
+        font-weight: 600;
+        color: #ffffff;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+    .event-node-meta {
+        font-size: 12px;
+        color: var(--slate-muted);
+    }
+    .venue-highlight-text {
+        color: var(--slate-light);
+        font-weight: 500;
+        margin-bottom: 3px;
+        font-size: 14px;
+    }
+
+    /* --- Telemetry Execution Actions --- */
+    .summary-action-zone {
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-telemetry-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 240, 255, 0.04);
+        border: 1px solid rgba(0, 240, 255, 0.15);
+        color: var(--neon-cyan);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-telemetry-trigger:hover {
+        background: rgba(0, 240, 255, 0.12);
+        border-color: var(--neon-cyan);
+        color: #ffffff;
+        box-shadow: var(--glare-effect);
+        transform: translateY(-1px);
+    }
+
+    /* --- Status Pill Badges --- */
+    .status-capsule-wrap {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .state-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: fit-content;
+    }
+
+    .badge-approved { background: rgba(57, 255, 20, 0.08); color: var(--neon-emerald); border: 1px solid rgba(57, 255, 20, 0.25); text-shadow: 0 0 6px rgba(57, 255, 20, 0.2); }
+    .badge-pending { background: rgba(255, 170, 0, 0.08); color: var(--neon-amber); border: 1px solid rgba(255, 170, 0, 0.25); text-shadow: 0 0 6px rgba(255, 170, 0, 0.2); }
+    .badge-rejected { background: rgba(239, 68, 68, 0.08); color: var(--crimson-alert); border: 1px solid rgba(239, 68, 68, 0.25); text-shadow: 0 0 6px rgba(239, 68, 68, 0.2); }
+
+    .compromise-alert-log {
+        font-size: 11px;
+        color: #fca5a5;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 6px;
+        line-height: 1.4;
+        max-width: 220px;
+    }
+
+    /* --- Immersive Glassmorphic Predictive Popup Modal --- */
+    .nexus-modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(3, 5, 15, 0.85);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease-in-out;
+    }
+    .nexus-modal-overlay.active-state {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .nexus-modal-window {
+        background: #0b1026;
+        border: 1px solid var(--border-ether);
+        border-radius: 20px;
+        width: 92%;
+        max-width: 580px;
+        padding: 32px;
+        box-shadow: 0 0 50px rgba(0, 240, 255, 0.12);
+        transform: scale(0.95);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    .nexus-modal-overlay.active-state .nexus-modal-window {
+        transform: scale(1);
+        border-color: rgba(0, 240, 255, 0.3);
+    }
+    .modal-header-block {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        border-bottom: 1px solid var(--border-ether);
+        padding-bottom: 14px;
+    }
+    .modal-header-block h3 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.3px;
+    }
+    .modal-close-trigger {
+        background: none;
+        border: none;
+        color: var(--slate-muted);
+        font-size: 26px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        line-height: 1;
+    }
+    .modal-close-trigger:hover {
+        color: var(--crimson-alert);
+    }
+
+    /* --- High-Tech Metric Framework Nodes --- */
+    .ai-dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+    .ai-metric-panel {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .ai-metric-label {
+        font-size: 11px;
+        color: var(--slate-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .ai-metric-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+    
+    /* --- Deep Logical Justification Logging --- */
+    .ai-reasoning-block {
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid var(--border-ether);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+    .ai-reasoning-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--neon-cyan);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .ai-reasoning-text {
+        font-size: 13px;
+        color: var(--slate-light);
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    /* --- Dynamic Fault Warnings Container --- */
+    .ai-popup-warnings-container {
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 10px;
+        padding: 14px;
+    }
+    .ai-popup-warnings-header {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--crimson-alert);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .ai-popup-warning-content {
+        font-size: 12px;
+        color: #fca5a5;
+        line-height: 1.4;
+        white-space: pre-wrap;
+    }
+
+    .glow-cyan-text { color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0, 240, 255, 0.3); }
+    .glow-amber-text { color: var(--neon-amber); text-shadow: 0 0 8px rgba(255, 170, 0, 0.3); }
+    .glow-emerald-text { color: var(--neon-emerald); text-shadow: 0 0 8px rgba(57, 255, 20, 0.3); }
+
+    .null-records-canvas { text-align: center; padding: 64px 24px; }
+    .null-records-canvas h3 { color: #ffffff; font-weight: 600; margin: 0 0 8px 0; font-size: 16px; }
+    .null-records-canvas p { color: var(--slate-muted); font-size: 14px; margin: 0 0 20px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nexus-workspace-container">
+    
+    <div class="board-intro-block">
+        <h2>Event Tracking Architecture</h2>
+        <p>Review real-time verification parameters, asset status signatures, and live core analytics predictions.</p>
+    </div>
+
+    <div class="matrix-table-container">
+        <table class="matrix-ledger-table">
+            <thead>
+                <tr>
+                    <th>Event Details</th>
+                    <th>Venue & Telemetry Date</th>
+                    <th>Neural Engine Data</th>
+                    <th>Validation Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>
+                        <div class="event-node-title">{{ event.title }}</div>
+                        <div class="event-node-meta">Submitted by: {{ event.organizer.get_full_name|default:event.organizer.username }}</div>
+                    </td>
+                    <td>
+                        <div class="venue-highlight-text">{{ event.venue.name }}</div>
+                        <div class="event-node-meta">{{ event.date|date:"l, d M Y" }}</div>
+                    </td>
+                    <td>
+                        <div class="summary-action-zone">
+                            <button class="btn-telemetry-trigger" 
+                                    type="button"
+                                    data-event-title="{{ event.title|escapejs }}"
+                                    data-venue-name="{{ event.venue.name|escapejs }}"
+                                    data-venue-capacity="{{ event.venue.capacity|default:'Uncapped' }}"
+                                    data-expected-crowd="{{ event.expected_crowd }}"
+                                    data-predicted-crowd="{{ event.predicted_crowd|default:'Not Computed' }}"
+                                    data-crowd-confidence="{{ event.crowd_confidence|default:'PENDING' }}"
+                                    data-ai-crowd-reason="{{ event.ai_crowd_reason|default:''|escapejs }}"
+                                    data-ai-venue-reason="{{ event.ai_venue_reason|default:''|escapejs }}"
+                                    data-ai-warnings="{{ event.ai_warnings|default:''|escapejs }}"
+                                    onclick="triggerPredictionTelemetry(this)">
+                                📊 View Analytics
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="status-capsule-wrap">
+                            {% if event.status == 'APPROVED' %}
+                                <span class="state-badge badge-approved">Approved</span>
+                            {% elif event.status == 'REJECTED' %}
+                                <span class="state-badge badge-rejected">Rejected</span>
+                                {% if event.rejection_reason %}
+                                    <div class="compromise-alert-log">
+                                        <strong>Fault Context:</strong> {{ event.rejection_reason }}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="state-badge badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="null-records-canvas">
+                            <h3>No Active Operations Tracks Found</h3>
+                            <p>The system index currently contains no records matching your verification profile.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="telemetryModalOverlay" class="nexus-modal-overlay" onclick="closeTelemetryModal(event)">
+    <div class="nexus-modal-window" onclick="event.stopPropagation()">
+        <div class="modal-header-block">
+            <h3>🤖 Neural Engine Diagnostics</h3>
+            <button class="modal-close-trigger" type="button" onclick="dismissTelemetryModal()">&times;</button>
+        </div>
+        <div class="modal-body-content">
+            <h4 style="color: #ffffff; font-size: 15px; margin: 0 0 2px 0; font-weight: 600;" id="modalEventTitle">Event Title</h4>
+            <div style="font-size: 12px; color: var(--slate-muted); margin-bottom: 20px;" id="modalVenueLabel">Venue Context</div>
+            
+            <div class="ai-dashboard-grid">
+                <div class="ai-metric-panel">
+                    <div class="ai-metric-label">Forecast Attendance</div>
+                    <div class="ai-metric-value glow-cyan-text" id="modalPredictedCrowd">--</div>
+                </div>
+                <div class="ai-metric-panel">
+                    <div class="ai-metric-label">Model Confidence</div>
+                    <div class="ai-metric-value" id="modalCrowdConfidence">--</div>
+                </div>
+                <div class="ai-metric-panel">
+                    <div class="ai-metric-label">Expected Registration</div>
+                    <div class="ai-metric-value" style="color: var(--slate-light);" id="modalExpectedCrowd">--</div>
+                </div>
+                <div class="ai-metric-panel">
+                    <div class="ai-metric-label">Venue Max Limit</div>
+                    <div class="ai-metric-value" style="color: var(--slate-light);" id="modalVenueCapacity">--</div>
+                </div>
+            </div>
+
+            <div class="ai-reasoning-block" id="blockCrowdReason" style="display: none;">
+                <div class="ai-reasoning-title">Attendance Telemetry Analytics</div>
+                <div class="ai-reasoning-text" id="textCrowdReason"></div>
+            </div>
+
+            <div class="ai-reasoning-block" id="blockVenueReason" style="display: none;">
+                <div class="ai-reasoning-title">Venue Allocation Diagnostics</div>
+                <div class="ai-reasoning-text" id="textVenueReason"></div>
+            </div>
+
+            <div class="ai-popup-warnings-container" id="blockAiWarnings" style="display: none;">
+                <div class="ai-popup-warnings-header">⚡ Core Structural System Warnings</div>
+                <div class="ai-popup-warning-content" id="textAiWarnings"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function triggerPredictionTelemetry(element) {
+        const title = element.getAttribute("data-event-title") || "No Name Set";
+        const venue = element.getAttribute("data-venue-name") || "No Assigned Venue";
+        const capacity = element.getAttribute("data-venue-capacity") || "Uncapped";
+        const expected = element.getAttribute("data-expected-crowd") || "0";
+        const predicted = element.getAttribute("data-predicted-crowd") || "Not Computed";
+        const confidence = (element.getAttribute("data-crowd-confidence") || "PENDING").toUpperCase();
+        
+        const crowdReason = (element.getAttribute("data-ai-crowd-reason") || "").trim();
+        const venueReason = (element.getAttribute("data-ai-venue-reason") || "").trim();
+        const warnings = (element.getAttribute("data-ai-warnings") || "").trim();
+
+        document.getElementById("modalEventTitle").innerText = title;
+        document.getElementById("modalVenueLabel").innerText = "Assigned Matrix Array: " + venue;
+        document.getElementById("modalExpectedCrowd").innerText = expected;
+        document.getElementById("modalVenueCapacity").innerText = capacity;
+        document.getElementById("modalPredictedCrowd").innerText = predicted;
+
+        const confNode = document.getElementById("modalCrowdConfidence");
+        confNode.innerText = confidence;
+        confNode.className = "ai-metric-value";
+        
+        if (confidence === "HIGH") {
+            confNode.classList.add("glow-emerald-text");
+        } else if (confidence === "MEDIUM") {
+            confNode.classList.add("glow-cyan-text");
+        } else {
+            confNode.classList.add("glow-amber-text");
+        }
+
+        toggleDataBlock("blockCrowdReason", "textCrowdReason", crowdReason);
+        toggleDataBlock("blockVenueReason", "textVenueReason", venueReason);
+        toggleDataBlock("blockAiWarnings", "textAiWarnings", warnings);
+
+        const overlay = document.getElementById("telemetryModalOverlay");
+        if (overlay) {
+            overlay.classList.add("active-state");
+        }
+    }
+
+    function toggleDataBlock(blockId, textId, dataPayload) {
+        const blockNode = document.getElementById(blockId);
+        const textNode = document.getElementById(textId);
+        
+        if (dataPayload && dataPayload !== "None" && dataPayload !== "") {
+            textNode.innerText = dataPayload;
+            blockNode.style.display = "block";
+        } else {
+            blockNode.style.display = "none";
+        }
+    }
+
+    function dismissTelemetryModal() {
+        const overlay = document.getElementById("telemetryModalOverlay");
+        if (overlay) overlay.classList.remove("active-state");
+    }
+
+    function closeTelemetryModal(event) {
+        const overlay = document.getElementById("telemetryModalOverlay");
+        if (event.target === overlay) {
+            dismissTelemetryModal();
+        }
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            dismissTelemetryModal();
+        }
+    });
+</script>
+{% endblock %}

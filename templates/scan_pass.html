@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nexus | Entry Scanner{% endblock %}
+
+{% block extrahead %}
+<style>
+    /* --- Layout & Structural Containers --- */
+    .dashboard-workspace-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px 16px 40px 16px;
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    /* Header Action Layout */
+    .dashboard-header-flex {
+        display: flex; 
+        flex-direction: column;
+        gap: 16px;
+        border-bottom: 1px solid var(--border-ether, #2d3748);
+        padding-bottom: 24px;
+        margin-bottom: 28px;
+    }
+
+    .header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* --- Scanner Hardware Card Layout --- */
+    .scanner-workspace-card {
+        background: var(--surface-card, #1a202c);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        margin-bottom: 24px;
+    }
+
+    #reader {
+        width: 100% !important;
+        border: none !important;
+        background: #000000;
+    }
+
+    /* Clean default html5-qrcode UI overrides */
+    #reader__dashboard_section_swaplink,
+    #reader__dashboard_section_csr,
+    #reader__filescan_input,
+    #reader__scan_region img { 
+        display: none !important; 
+    }
+
+    /* --- Status Feedback Bar --- */
+    .scanner-status-strip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-top: 1px solid var(--border-ether, #2d3748);
+    }
+
+    .status-pulse-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--neon-emerald, #39ff14);
+        box-shadow: 0 0 10px var(--neon-emerald, #39ff14);
+        animation: scannerGlow 1.8s infinite ease-in-out;
+        flex-shrink: 0;
+    }
+    .status-pulse-dot.paused { 
+        background: var(--neon-amber, #ffaa00); 
+        box-shadow: 0 0 10px var(--neon-amber, #ffaa00); 
+        animation: none; 
+    }
+
+    @keyframes scannerGlow {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(0.9); }
+    }
+
+    .status-strip-text {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--slate-muted, #a0aec0);
+        letter-spacing: 0.2px;
+    }
+
+    /* --- Live Metrics Metrics Dashboard --- */
+    .metrics-grid-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .metric-data-tile {
+        flex: 1;
+        background: var(--surface-card, #1a202c);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .metric-tile-num {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: monospace;
+        line-height: 1.2;
+    }
+    .metric-tile-num.state-valid { color: var(--neon-emerald, #39ff14); }
+    .metric-tile-num.state-invalid { color: var(--neon-rose, #ff007f); }
+
+    .metric-tile-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--slate-muted, #a0aec0);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    /* --- Dynamic Micro-Interactions Cards --- */
+    #result-card {
+        display: none;
+        background: var(--surface-card, #1a202c);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 16px;
+        padding: 28px 20px;
+        text-align: center;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    #result-card.valid {
+        background: rgba(57, 255, 20, 0.05);
+        border-color: rgba(57, 255, 20, 0.3);
+    }
+    #result-card.already {
+        background: rgba(255, 170, 0, 0.05);
+        border-color: rgba(255, 170, 0, 0.3);
+    }
+    #result-card.invalid {
+        background: rgba(255, 0, 127, 0.05);
+        border-color: rgba(255, 0, 127, 0.3);
+    }
+    #result-card.loading {
+        background: rgba(26, 32, 44, 0.9);
+        border-color: var(--border-ether, #2d3748);
+    }
+
+    .card-response-icon { font-size: 3rem; margin-bottom: 12px; }
+    .card-response-label { font-size: 1.3rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+    .card-response-name { font-size: 1.05rem; font-weight: 600; color: var(--neon-cyan, #00f0ff); }
+    .card-response-detail { font-size: 13px; color: var(--slate-muted, #a0aec0); margin-top: 4px; }
+    .card-response-countdown { font-size: 11px; font-weight: 600; color: var(--slate-muted, #a0aec0); margin-top: 16px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* --- Keyboard Fallback Section --- */
+    .manual-entry-dropdown {
+        background: var(--surface-card, #1a202c);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 12px;
+        padding: 6px 16px;
+    }
+    .manual-entry-dropdown[open] {
+        padding-bottom: 16px;
+    }
+    .manual-entry-dropdown summary {
+        cursor: pointer;
+        color: var(--slate-light, #e2e8f0);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 0;
+        list-style: none;
+        outline: none;
+    }
+    .manual-entry-dropdown summary::-webkit-details-marker { display: none; }
+    
+    .manual-input-flex-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    .manual-input-flex-row input {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-ether, #2d3748);
+        border-radius: 6px;
+        padding: 12px 16px;
+        color: #ffffff;
+        font-size: 14px;
+        font-family: monospace;
+    }
+    .manual-input-flex-row input:focus {
+        outline: none;
+        border-color: var(--neon-cyan, #00f0ff);
+    }
+
+    /* --- Top Level Navigation Controls --- */
+    .nav-action-btn {
+        text-decoration: none; 
+        padding: 8px 16px; 
+        font-size: 13px; 
+        font-weight: 600;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-ether, #3d4a5d);
+        color: #ffffff;
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    /* --- High Intensity Solid CTA Buttons --- */
+    .action-link-btn {
+        display: inline-block;
+        text-align: center;
+        box-sizing: border-box;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: filter 0.2s ease, transform 0.1s ease;
+        border: none;
+        color: #ffffff;
+    }
+    .action-link-btn:hover { filter: brightness(1.2); }
+    .action-link-btn:active { transform: translateY(1px); }
+    
+    .btn-style-cyan { 
+        background: linear-gradient(135deg, #00c6ff, #0072ff); 
+        box-shadow: 0 4px 14px rgba(0, 114, 255, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-workspace-container">
+    
+    <!-- Workspace Header Block -->
+    <header class="dashboard-header-flex">
+        <div class="header-top-row">
+            <a href="{% url 'verify_event_passes' %}" class="nav-action-btn btn-secondary">
+                ← Back to Tracker
+            </a>
+            <span style="font-size: 11px; font-weight: 700; color: var(--neon-cyan, #00f0ff); background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                📍 {{ event.title }}
+            </span>
+        </div>
+        <div>
+            <h1 style="color: #ffffff; font-size: 1.8rem; font-weight: 700; margin: 4px 0 2px 0; letter-spacing: -0.02em;">Entry Gate Scanner</h1>
+            <p style="color: var(--slate-muted, #a0aec0); margin: 0; font-size: 14px;">Align the student's hardware access QR payload within the targeting crosshairs.</p>
+        </div>
+    </header>
+
+    <!-- Main Active Scanner Card -->
+    <div class="scanner-workspace-card">
+        <div id="reader"></div>
+        <div class="scanner-status-strip">
+            <div class="status-pulse-dot" id="status-dot"></div>
+            <span class="status-strip-text" id="status-text">Optical array online — waiting for capture…</span>
+        </div>
+    </div>
+
+    <!-- Async Verification Response Deck Display Card -->
+    <div id="result-card">
+        <div class="card-response-icon" id="result-icon">⏳</div>
+        <div class="card-response-label" id="result-label">Running Parameters…</div>
+        <div class="card-response-name" id="result-name"></div>
+        <div class="card-response-detail" id="result-detail"></div>
+        <div class="card-response-countdown" id="result-timer"></div>
+    </div>
+
+    <!-- Diagnostics Counter Arrays -->
+    <div class="metrics-grid-row">
+        <div class="metric-data-tile">
+            <div class="metric-tile-num state-valid" id="count-valid">0</div>
+            <div class="metric-tile-label">Verified Inside</div>
+        </div>
+        <div class="metric-data-tile">
+            <div class="metric-tile-num state-invalid" id="count-invalid">0</div>
+            <div class="metric-tile-label">Rejected / Duplicates</div>
+        </div>
+    </div>
+
+    <!-- Fallback Terminal Manual Override Inputs -->
+    <details class="manual-entry-dropdown">
+        <summary>⌨️ Manual Override Code Entry</summary>
+        <div class="manual-input-flex-row">
+            <input type="text" id="manual-code" placeholder="ENTER UNIQUE PASS KEYHASH" maxlength="20">
+            <button class="action-link-btn btn-style-cyan" onclick="processEntry(document.getElementById('manual-code').value)">
+                Verify Pass
+            </button>
+        </div>
+    </details>
+
+</div>
+
+<!-- QR Rendering Engine Core Asset Library Deployment -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+    const VERIFY_URL = "{% url 'verify_pass' event.id %}";
+    const CSRF_TOKEN = "{{ csrf_token }}";
+
+    let isProcessing = false;
+    let countValid   = 0;
+    let countInvalid = 0;
+
+    // --- Optical Input Hardware Configuration Block ---
+    const scanner = new Html5Qrcode("reader");
+    scanner.start(
+        { facingMode: "environment" },
+        {
+            fps: 12,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+        },
+        (decodedText) => { processEntry(decodedText); },
+        () => {}
+    ).catch(err => {
+        setStatus("Optical IO initialization failure: " + err, true);
+    });
+
+    // --- Core Verification Execution System ---
+    async function processEntry(code) {
+        code = (code || "").trim().toUpperCase();
+        if (!code || isProcessing) return;
+
+        isProcessing = true;
+        try { scanner.pause(true); } catch(e) {}
+
+        setStatus("Running verification handshake…", false);
+        showLoading();
+
+        try {
+            const resp = await fetch(VERIFY_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": CSRF_TOKEN,
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: new URLSearchParams({ code }),
+            });
+
+            if (!resp.ok) throw new Error("Gateway exception code " + resp.status);
+            const data = await resp.json();
+            handleResult(data);
+
+        } catch (err) {
+            showResult("invalid", "⚠️", "Pipeline Fault", "Communication timed out.", "");
+            countInvalid++;
+            updateStats();
+            
+            setTimeout(() => {
+                isProcessing = false;
+                try { scanner.resume(); } catch(e) {}
+                setStatus("Optical array online — waiting for capture…", false);
+                hideResult();
+            }, 2500);
+        }
+    }
+
+    // --- Context Response Decoupling Module ---
+    function handleResult(data) {
+        let icon, label, detail, cardClass, delay;
+
+        if (data.status === "valid") {
+            icon = "✅"; label = "Access Authorized"; cardClass = "valid"; delay = 3000;
+            countValid++; updateStats();
+            setStatus("✅ Entry cleared — clearing channel in 3s…", false);
+        } else if (data.status === "already_used") {
+            icon = "⚠️"; label = "Duplicate Match"; cardClass = "already"; delay = 3500;
+            countInvalid++; updateStats();
+            setStatus("⚠️ Token lifecycle expired — holding 3s…", false);
+        } else {
+            icon = "❌"; label = "Invalid Token"; cardClass = "invalid"; delay = 2500;
+            countInvalid++; updateStats();
+            setStatus("❌ Clear failed — holding session…", false);
+        }
+
+        const name = data.student_name || "";
+        detail = data.status === "already_used" 
+            ? `Token validated previously at ${data.verified_at || 'unknown datetime'}` 
+            : (data.event_name || "");
+
+        showResult(cardClass, icon, label, name, detail, delay);
+
+        let countdown = Math.floor(delay / 1000);
+        const timerEl = document.getElementById("result-timer");
+        const interval = setInterval(() => {
+            countdown--;
+            if (timerEl) timerEl.textContent = `Next evaluation window in ${countdown}s…`;
+        }, 1000);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            hideResult();
+            isProcessing = false;
+            try { scanner.resume(); } catch(e) {}
+            setStatus("Optical array online — waiting for capture…", false);
+            const mi = document.getElementById("manual-code");
+            if (mi) mi.value = "";
+        }, delay);
+    }
+
+    // --- Viewport State Modification Utilities ---
+    function showLoading() {
+        const card = document.getElementById("result-card");
+        card.className = "loading";
+        card.style.display = "block";
+        document.getElementById("result-icon").textContent = "⏳";
+        document.getElementById("result-label").textContent = "Parsing Handshake…";
+        document.getElementById("result-name").textContent = "";
+        document.getElementById("result-detail").textContent = "";
+        document.getElementById("result-timer").textContent = "";
+    }
+
+    function showResult(cardClass, icon, label, name, detail, delay) {
+        const card = document.getElementById("result-card");
+        card.className = cardClass;
+        card.style.display = "block";
+        document.getElementById("result-icon").textContent = icon;
+        document.getElementById("result-label").textContent = label;
+        document.getElementById("result-name").textContent = name;
+        document.getElementById("result-detail").textContent = detail;
+        document.getElementById("result-timer").textContent = `Next evaluation window in ${Math.floor((delay||3000)/1000)}s…`;
+    }
+
+    function hideResult() { document.getElementById("result-card").style.display = "none"; }
+    function setStatus(msg, isPaused) {
+        document.getElementById("status-text").textContent = msg;
+        document.getElementById("status-dot").className = "status-pulse-dot" + (isPaused ? " paused" : "");
+    }
+    function updateStats() {
+        document.getElementById("count-valid").textContent = countValid;
+        document.getElementById("count-invalid").textContent = countInvalid;
+    }
+</script>
+{% endblock %}

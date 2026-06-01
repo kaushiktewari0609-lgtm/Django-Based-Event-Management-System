@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Hub | Manage Events</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #38bdf8; 
+            --accent: #ff007a; 
+            --bg: #05071a; 
+            --card-bg: #0f1235; 
+            --pending: #fbbf24; 
+            --approved: #10b981; 
+            --error: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: white; min-height: 100vh; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        /* --- Navigation Context Bar --- */
+        .nexus-nav-context-bar {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+        }
+        .nexus-back-trigger {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        .nexus-back-trigger:hover {
+            color: white;
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.3);
+            transform: translateX(-2px);
+        }
+
+        /* --- Messages Styling --- */
+        .messages-wrapper {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message-toast {
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease-out;
+            backdrop-filter: blur(10px);
+        }
+        .msg-success { background: rgba(16, 185, 129, 0.9); border: 1px solid var(--approved); }
+        .msg-error { background: rgba(239, 68, 68, 0.9); border: 1px solid var(--error); }
+        .msg-info { background: rgba(56, 189, 248, 0.9); border: 1px solid var(--primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .close-msg { cursor: pointer; margin-left: 15px; opacity: 0.7; font-size: 1.2rem; }
+        .close-msg:hover { opacity: 1; }
+
+        /* Typography & Header */
+        .hub-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 5px; }
+        .hub-subtitle { color: #b0b3c1; margin-bottom: 30px; }
+
+        /* Search Section */
+        .search-section {
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(15px);
+            padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 40px;
+        }
+        .search-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 15px; }
+        input, select { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); padding: 12px 15px; border-radius: 10px; color: white; outline: none; }
+        .btn-search { background: var(--primary); color: #000; border: none; padding: 0 30px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+        /* Grid */
+        .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        
+        .event-card {
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 25px; position: relative;
+            display: flex; flex-direction: column; transition: 0.3s;
+        }
+        .event-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+
+        /* Status Badges */
+        .status-badge {
+            position: absolute; top: 20px; right: 20px; padding: 4px 10px;
+            border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+        }
+        .status-PENDING { background: rgba(251, 191, 36, 0.2); color: var(--pending); border: 1px solid var(--pending); }
+        .status-APPROVED { background: rgba(16, 185, 129, 0.2); color: var(--approved); border: 1px solid var(--approved); }
+
+        .card-date { color: var(--accent); font-weight: 700; font-size: 0.8rem; }
+        .card-title { font-size: 1.4rem; font-weight: 800; margin: 10px 0; color: var(--primary); }
+        
+        .venue-info { font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px; }
+
+        /* Actions */
+        .btn-update {
+            margin-top: auto; background: transparent; border: 1px solid var(--primary);
+            color: var(--primary); padding: 12px; border-radius: 12px; text-align: center;
+            text-decoration: none; font-weight: 700; transition: 0.3s;
+        }
+        .btn-update:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+
+        .empty-state { text-align: center; padding: 60px; color: #64748b; }
+    </style>
+</head>
+<body>
+
+{% if messages %}
+<div class="messages-wrapper">
+    {% for message in messages %}
+    <div class="message-toast msg-{{ message.tags }}">
+        <span>{{ message }}</span>
+        <span class="close-msg" onclick="this.parentElement.remove()">&times;</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container">
+    <!-- Back to Dashboard Navigation Action -->
+    <div class="nexus-nav-context-bar">
+        <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
+            &larr; Return to Dashboard
+        </a>
+    </div>
+
+    <header>
+        <h1 class="hub-title">Management <span style="color:var(--primary)">Portal</span></h1>
+        <p class="hub-subtitle">Review and update your scheduled campus events.</p>
+    </header>
+
+    <section class="search-section">
+        <form method="GET" action="{% url 'upcoming_events' %}" class="search-form">
+            <input type="text" name="search" placeholder="Search title or details..." value="{{ search_query }}">
+            
+            <select name="venue">
+                <option value="">All Venues</option>
+                {% for venue in venues %}
+                <option value="{{ venue.id }}" {% if selected_venue == venue.id|stringformat:"s" %}selected{% endif %}>{{ venue.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="date_sort">
+                <option value="soonest" {% if selected_sort == 'soonest' %}selected{% endif %}>Soonest First</option>
+                <option value="latest" {% if selected_sort == 'latest' %}selected{% endif %}>Latest First</option>
+            </select>
+
+            <button type="submit" class="btn-search">FILTER</button>
+        </form>
+    </section>
+
+    <div class="events-grid">
+        {% for event in events %}
+        <div class="event-card">
+            <span class="status-badge status-{{ event.status }}">{{ event.status }}</span>
+
+            <span class="card-date">{{ event.date|date:"d M, Y" }}</span>
+            <h2 class="card-title">{{ event.title }}</h2>
+            
+            <p class="venue-info">
+                📍 {{ event.venue.name }} <br>
+                ⏰ {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}
+            </p>
+
+            <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 20px;">
+                {{ event.description|truncatewords:15 }}
+            </p>
+
+            <a href="{% url 'update_event_teacher' event.id %}" class="btn-update">Update Event Details</a>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <h3>No events found matching your criteria.</h3>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        const toasts = document.querySelectorAll('.message-toast');
+        text-align: center;
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.5s ease-out';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        });
+    });
+</script>
+
+</body>
+</html>
