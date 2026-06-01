@@ -188,7 +188,7 @@
         <a href="{% url 'teacher_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
             ← Return to Dashboard
         </a>
-    {% else user.profile.college_data.role == 'Student'%}
+    {% elif user.profile.college_data.role == 'Student'%}
         <a href="{% url 'student_dashboard' %}" class="nexus-back-trigger" id="globalBackBtn">
             ← Return to Dashboard
         </a>
