@@ -172,9 +172,9 @@ This project is licensed under the MIT License.
 Developed by **Nexus Team**
 
 # Nexus Team:
-Member 1 (Backend and Database Developer: **Aditya Pratap Singh** 
+Member 1 (Backend and Database Developer): **Aditya Pratap Singh** 
 --
-Member 2 (Frontend Developer: **Jayant Singh** 
+Member 2 (Frontend Developer): **Jayant Singh** 
 --
 Member 3 (UI/Ux Designer) : **Prerna Gupta** 
 --
