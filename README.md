@@ -72,12 +72,6 @@ NexusFlow is an AI-powered event management platform designed for colleges and o
 
 ---
 
-# 📸 Screenshots
-
-*Add screenshots here*
-
----
-
 # ⚙️ Installation
 
 ## 1. Clone the Repository
