@@ -173,9 +173,13 @@ Developed by **Nexus Team**
 
 # Nexus Team:
 Member 1 (Backend and Database Developer: **Aditya Pratap Singh** 
+--
 Member 2 (Frontend Developer: **Jayant Singh** 
+--
 Member 3 (UI/Ux Designer) : **Prerna Gupta** 
+--
 Member 4 (Presentation and Management): **Kaushik Tewari** 
+--
 
 ---
 
